@@ -1,0 +1,34 @@
+<%- include('partials/head', { title }) %>
+<div class="<%= orgExists ? 'narrow' : 'medium' %>">
+  <h1>Create account</h1>
+  <% if (orgExists) { %>
+    <p>You'll join the <strong><%= organisation.name %></strong> workspace.</p>
+  <% } else { %>
+    <p>Set up your food bank. You can change any of this later.</p>
+  <% } %>
+  <%- include('partials/errors', { errors }) %>
+  <form method="post" action="/signup" class="form">
+    <fieldset class="fieldset">
+      <legend>Your details</legend>
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" value="<%= form.name || '' %>" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" value="<%= form.email || '' %>" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <span class="hint">At least 8 characters.</span>
+        <input id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
+      </div>
+    </fieldset>
+    <% if (!orgExists) { %>
+      <%- include('partials/organisation-fields', { org: form }) %>
+    <% } %>
+    <button type="submit" class="button">Create account</button>
+  </form>
+  <p>Already have an account? <a href="/login">Sign in</a>.</p>
+</div>
+<%- include('partials/foot', { scripts: ['/js/account.js'] }) %>

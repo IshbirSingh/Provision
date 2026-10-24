@@ -1,0 +1,87 @@
+<%
+  // Shared by sign-up and the organisation page. `org` holds the values to show.
+  const storageRows = Object.values(org.storage || {});
+  if (storageRows.length === 0) storageRows.push({}, {});
+%>
+<fieldset class="fieldset">
+  <legend>Food bank</legend>
+  <div class="field">
+    <label for="orgName">Name</label>
+    <input id="orgName" name="orgName" type="text" value="<%= org.orgName ?? org.name ?? '' %>" required>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label for="postcode">Postcode</label>
+      <span class="hint">Used for weather, holidays and local deprivation data. UK only.</span>
+      <input id="postcode" name="postcode" type="text" class="input--short" value="<%= org.postcode || '' %>" autocomplete="postal-code" required>
+    </div>
+    <div class="field">
+      <label for="planningHorizonDays">Planning horizon (days)</label>
+      <span class="hint">How far ahead each plan looks.</span>
+      <input id="planningHorizonDays" name="planningHorizonDays" type="number" min="1" max="90" class="input--short" value="<%= org.planningHorizonDays || 7 %>" required>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset class="fieldset">
+  <legend>Storage</legend>
+  <p class="hint">Add each storage area in whatever unit you track it in. Leave capacity blank if you don't know it; SupplyShield won't invent a limit.</p>
+  <div class="table-scroll">
+    <table class="table table--form" id="storage-table">
+      <thead>
+        <tr><th>Name</th><th>Type</th><th>How many</th><th>Capacity each</th><th>Unit</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% storageRows.forEach((row, i) => { %>
+        <tr>
+          <td><input name="storage[<%= i %>][label]" type="text" value="<%= row.label || '' %>" placeholder="e.g. Main warehouse" aria-label="Storage name"></td>
+          <td>
+            <select name="storage[<%= i %>][type]" aria-label="Storage type">
+              <% for (const t of storageTypes) { %><option value="<%= t %>"<%= row.type === t ? ' selected' : '' %>><%= t[0].toUpperCase() + t.slice(1) %></option><% } %>
+            </select>
+          </td>
+          <td><input name="storage[<%= i %>][count]" type="number" min="1" step="1" value="<%= row.count ?? 1 %>" class="input--num" aria-label="How many"></td>
+          <td><input name="storage[<%= i %>][capacity]" type="number" min="0" step="any" value="<%= row.capacityEach ?? row.capacity ?? '' %>" class="input--num" aria-label="Capacity each"></td>
+          <td>
+            <select name="storage[<%= i %>][unit]" aria-label="Capacity unit">
+              <% for (const u of capacityUnits) { %><option value="<%= u %>"<%= (row.capacityUnit || row.unit) === u ? ' selected' : '' %>><%= u === 'm3' ? 'm³' : u %></option><% } %>
+            </select>
+          </td>
+          <td><button type="button" class="link-button" data-remove-row>Remove</button></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <button type="button" class="button button--secondary" data-add-row="storage-table">Add storage area</button>
+
+  <div class="field">
+    <label for="storageNotes">Anything else about your storage (optional)</label>
+    <span class="hint">For example "two chest freezers, about half full most weeks" or "back room holds roughly 60 crates".</span>
+    <textarea id="storageNotes" name="storageNotes" rows="3"><%= org.storageNotes || '' %></textarea>
+  </div>
+</fieldset>
+
+<fieldset class="fieldset">
+  <legend>Other resources (optional)</legend>
+  <div class="field-row">
+    <div class="field">
+      <label for="budgetAmount">Purchasing budget (£)</label>
+      <input id="budgetAmount" name="budgetAmount" type="number" min="0" step="any" class="input--short" value="<%= org.budget?.amount ?? org.budgetAmount ?? '' %>">
+    </div>
+    <div class="field">
+      <label for="budgetPeriod">Per</label>
+      <select id="budgetPeriod" name="budgetPeriod">
+        <% for (const p of ['week', 'month', 'year']) { %><option value="<%= p %>"<%= (org.budget?.period || org.budgetPeriod || 'month') === p ? ' selected' : '' %>><%= p %></option><% } %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="vehicles">Vehicles</label>
+      <input id="vehicles" name="vehicles" type="number" min="0" step="1" class="input--short" value="<%= org.vehicles ?? '' %>">
+    </div>
+    <div class="field">
+      <label for="deliverySlotsPerWeek">Delivery slots per week</label>
+      <input id="deliverySlotsPerWeek" name="deliverySlotsPerWeek" type="number" min="0" step="1" class="input--short" value="<%= org.deliverySlotsPerWeek ?? '' %>">
+    </div>
+  </div>
+</fieldset>

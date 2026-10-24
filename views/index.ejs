@@ -1,0 +1,72 @@
+<%- include('partials/head', { title }) %>
+<h1><%= organisation.name || 'Overview' %></h1>
+<p class="lead">Upload stock records, approve the planning parameters, test a scenario and compare three replenishment policies before you finalise a plan.</p>
+
+<section class="section">
+  <h2>Progress</h2>
+  <table class="table">
+    <thead><tr><th scope="col">Step</th><th scope="col">Status</th><th scope="col"></th></tr></thead>
+    <tbody>
+      <% for (const step of workflow.steps) { %>
+      <tr>
+        <td><%= step.number %>. <%= step.label %></td>
+        <td>
+          <% if (step.done) { %><span class="tag tag--done">Done</span>
+          <% } else if (step.unlocked) { %><span class="tag">To do</span>
+          <% } else { %><span class="tag tag--muted">Waiting on earlier steps</span><% } %>
+        </td>
+        <td class="num"><% if (step.unlocked) { %><a href="<%= step.path %>"><%= step.done ? 'Review' : 'Start' %></a><% } %></td>
+      </tr>
+      <% } %>
+    </tbody>
+  </table>
+  <% if (workflow.hasStaged) { %>
+    <p class="notice notice--info">An upload is waiting for review. <a href="/review">Review extracted records</a>.</p>
+  <% } %>
+</section>
+
+<div class="grid-2">
+  <section class="section">
+    <h2>Approved data</h2>
+    <dl class="summary">
+      <div><dt>Products</dt><dd><%= summary.products %></dd></div>
+      <div><dt>Stock records</dt><dd><%= summary.records %></dd></div>
+      <div><dt>Current stock batches</dt><dd><%= summary.batches %></dd></div>
+      <div><dt>Date range</dt><dd><%= summary.from ? `${summary.from} to ${summary.to}` : 'No records yet' %></dd></div>
+      <div><dt>Input version</dt><dd><%= summary.inputVersion %></dd></div>
+      <div><dt>Finalised plans</dt><dd><%= summary.finalisedPlans %></dd></div>
+    </dl>
+  </section>
+
+  <section class="section">
+    <h2>Services</h2>
+    <dl class="summary">
+      <div>
+        <dt>Calculation engine</dt>
+        <dd>
+          <% if (integrations.engine.status === 'ok') { %><span class="tag tag--done">Running</span>
+          <% } else if (integrations.engine.status === 'checking') { %><span class="tag">Checking</span>
+          <% } else { %><span class="tag tag--alert">Unavailable</span><% } %>
+          <% if (integrations.engine.detail) { %><span class="hint"><%= integrations.engine.detail %></span><% } %>
+        </dd>
+      </div>
+      <div>
+        <dt>Nebius AI</dt>
+        <dd><%- integrations.nebius ? '<span class="tag tag--done">Connected</span>' : '<span class="tag tag--muted">Not configured</span> <span class="hint">Template explanations will be used.</span>' %></dd>
+      </div>
+      <div>
+        <dt>Tavily search</dt>
+        <dd><%- integrations.tavily ? '<span class="tag tag--done">Connected</span>' : '<span class="tag tag--muted">Not configured</span>' %></dd>
+      </div>
+    </dl>
+  </section>
+</div>
+
+<section class="section">
+  <h2>Sample workspace</h2>
+  <p>Replace the current stock data and results with the preloaded sample dataset. Accounts, your organisation details and finalised plans are kept.</p>
+  <form method="post" action="/reset" onsubmit="return confirm('Replace current data with the sample dataset?');">
+    <button type="submit" class="button button--secondary">Reset to sample data</button>
+  </form>
+</section>
+<%- include('partials/foot') %>

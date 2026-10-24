@@ -1,0 +1,19 @@
+<%- include('partials/head', { title }) %>
+<div class="narrow">
+  <h1>Sign in</h1>
+  <% if (error) { %><div class="notice notice--error" role="alert"><%= error %></div><% } %>
+  <form method="post" action="/login" class="form">
+    <input type="hidden" name="next" value="<%= next %>">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" value="<%= email %>" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="button">Sign in</button>
+  </form>
+  <p>No account yet? <a href="/signup">Create one</a>.</p>
+</div>
+<%- include('partials/foot') %>

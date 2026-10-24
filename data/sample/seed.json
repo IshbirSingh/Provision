@@ -1,0 +1,6521 @@
+{
+  "products": {
+    "pasta_500g": {
+      "name": "Pasta 500g",
+      "category": "staple_carbohydrates",
+      "unit": "packet",
+      "packSize": 500,
+      "packSizeUnit": "g",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "rice_1kg": {
+      "name": "Rice 1kg",
+      "category": "staple_carbohydrates",
+      "unit": "bag",
+      "packSize": 1,
+      "packSizeUnit": "kg",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "oats_1kg": {
+      "name": "Porridge Oats 1kg",
+      "category": "staple_carbohydrates",
+      "unit": "bag",
+      "packSize": 1,
+      "packSizeUnit": "kg",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "peas_tin": {
+      "name": "Tinned Peas",
+      "category": "tinned_vegetables",
+      "unit": "tin",
+      "packSize": 300,
+      "packSizeUnit": "g",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "sweetcorn_tin": {
+      "name": "Tinned Sweetcorn",
+      "category": "tinned_vegetables",
+      "unit": "tin",
+      "packSize": 198,
+      "packSizeUnit": "g",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "baked_beans_tin": {
+      "name": "Baked Beans 415g",
+      "category": "tinned_protein",
+      "unit": "tin",
+      "packSize": 415,
+      "packSizeUnit": "g",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "tuna_tin": {
+      "name": "Tinned Tuna",
+      "category": "tinned_protein",
+      "unit": "tin",
+      "packSize": 145,
+      "packSizeUnit": "g",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "apples_bag": {
+      "name": "Apples (bag)",
+      "category": "fresh_produce",
+      "unit": "bag",
+      "packSize": 6,
+      "packSizeUnit": "apples",
+      "priority": "standard",
+      "unitCost": null
+    },
+    "potatoes_2kg": {
+      "name": "Potatoes 2.5kg",
+      "category": "fresh_produce",
+      "unit": "bag",
+      "packSize": 2.5,
+      "packSizeUnit": "kg",
+      "priority": "standard",
+      "unitCost": null
+    },
+    "infant_formula": {
+      "name": "Infant Formula 800g",
+      "category": "baby_food_infant_formula",
+      "unit": "tub",
+      "packSize": 800,
+      "packSizeUnit": "g",
+      "priority": "critical",
+      "unitCost": null
+    },
+    "baby_food_jar": {
+      "name": "Baby Food Jars",
+      "category": "baby_food_infant_formula",
+      "unit": "jar",
+      "packSize": 125,
+      "packSizeUnit": "g",
+      "priority": "critical",
+      "unitCost": null
+    },
+    "toothpaste": {
+      "name": "Toothpaste",
+      "category": "hygiene_products",
+      "unit": "tube",
+      "packSize": 75,
+      "packSizeUnit": "ml",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "sanitary_pads": {
+      "name": "Sanitary Pads",
+      "category": "hygiene_products",
+      "unit": "pack",
+      "packSize": 14,
+      "packSizeUnit": "pads",
+      "priority": "essential",
+      "unitCost": null
+    },
+    "gf_pasta_500g": {
+      "name": "Gluten Free Pasta 500g",
+      "category": "allergy_safe_dietary",
+      "unit": "packet",
+      "packSize": 500,
+      "packSizeUnit": "g",
+      "priority": "critical",
+      "unitCost": null
+    },
+    "lactose_free_milk": {
+      "name": "Lactose Free Milk UHT 1L",
+      "category": "allergy_safe_dietary",
+      "unit": "carton",
+      "packSize": 1,
+      "packSizeUnit": "L",
+      "priority": "critical",
+      "unitCost": null
+    }
+  },
+  "historicalStock": {
+    "record_0001": {
+      "productId": "pasta_500g",
+      "date": "2025-10-27",
+      "quantity": 323,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0002": {
+      "productId": "pasta_500g",
+      "date": "2025-11-03",
+      "quantity": 387,
+      "unit": "packet",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0003": {
+      "productId": "pasta_500g",
+      "date": "2025-11-10",
+      "quantity": 314,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0004": {
+      "productId": "pasta_500g",
+      "date": "2025-11-17",
+      "quantity": 369,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0005": {
+      "productId": "pasta_500g",
+      "date": "2025-11-24",
+      "quantity": 256,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0006": {
+      "productId": "pasta_500g",
+      "date": "2025-12-01",
+      "quantity": 301,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0007": {
+      "productId": "pasta_500g",
+      "date": "2025-12-08",
+      "quantity": 191,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0008": {
+      "productId": "pasta_500g",
+      "date": "2025-12-15",
+      "quantity": 343,
+      "unit": "packet",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0009": {
+      "productId": "pasta_500g",
+      "date": "2025-12-22",
+      "quantity": 214,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0010": {
+      "productId": "pasta_500g",
+      "date": "2025-12-29",
+      "quantity": 370,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0011": {
+      "productId": "pasta_500g",
+      "date": "2026-01-05",
+      "quantity": 295,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0012": {
+      "productId": "pasta_500g",
+      "date": "2026-01-12",
+      "quantity": 308,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0013": {
+      "productId": "pasta_500g",
+      "date": "2026-01-19",
+      "quantity": 110,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0014": {
+      "productId": "pasta_500g",
+      "date": "2026-01-26",
+      "quantity": 349,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0015": {
+      "productId": "pasta_500g",
+      "date": "2026-02-02",
+      "quantity": 225,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0016": {
+      "productId": "pasta_500g",
+      "date": "2026-02-09",
+      "quantity": 310,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0017": {
+      "productId": "pasta_500g",
+      "date": "2026-02-16",
+      "quantity": 204,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0018": {
+      "productId": "pasta_500g",
+      "date": "2026-02-23",
+      "quantity": 317,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0019": {
+      "productId": "pasta_500g",
+      "date": "2026-03-02",
+      "quantity": 203,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0020": {
+      "productId": "pasta_500g",
+      "date": "2026-03-09",
+      "quantity": 78,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0021": {
+      "productId": "pasta_500g",
+      "date": "2026-03-16",
+      "quantity": 199,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0022": {
+      "productId": "pasta_500g",
+      "date": "2026-03-23",
+      "quantity": 354,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0023": {
+      "productId": "pasta_500g",
+      "date": "2026-03-30",
+      "quantity": 260,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0024": {
+      "productId": "pasta_500g",
+      "date": "2026-04-06",
+      "quantity": 127,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0025": {
+      "productId": "pasta_500g",
+      "date": "2026-04-13",
+      "quantity": 221,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0026": {
+      "productId": "pasta_500g",
+      "date": "2026-04-20",
+      "quantity": 358,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0027": {
+      "productId": "pasta_500g",
+      "date": "2026-04-27",
+      "quantity": 261,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0028": {
+      "productId": "pasta_500g",
+      "date": "2026-05-04",
+      "quantity": 273,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0029": {
+      "productId": "pasta_500g",
+      "date": "2026-05-11",
+      "quantity": 207,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0030": {
+      "productId": "pasta_500g",
+      "date": "2026-05-18",
+      "quantity": 334,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0031": {
+      "productId": "pasta_500g",
+      "date": "2026-05-25",
+      "quantity": 245,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0032": {
+      "productId": "pasta_500g",
+      "date": "2026-06-01",
+      "quantity": 332,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0033": {
+      "productId": "pasta_500g",
+      "date": "2026-06-08",
+      "quantity": 242,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0034": {
+      "productId": "pasta_500g",
+      "date": "2026-06-15",
+      "quantity": 145,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0035": {
+      "productId": "pasta_500g",
+      "date": "2026-06-22",
+      "quantity": 277,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0036": {
+      "productId": "pasta_500g",
+      "date": "2026-06-29",
+      "quantity": 349,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0037": {
+      "productId": "pasta_500g",
+      "date": "2026-07-06",
+      "quantity": 271,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0038": {
+      "productId": "pasta_500g",
+      "date": "2026-07-13",
+      "quantity": 340,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0039": {
+      "productId": "pasta_500g",
+      "date": "2026-07-20",
+      "quantity": 240,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0040": {
+      "productId": "pasta_500g",
+      "date": "2026-07-27",
+      "quantity": 329,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0041": {
+      "productId": "pasta_500g",
+      "date": "2026-08-03",
+      "quantity": 241,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0042": {
+      "productId": "pasta_500g",
+      "date": "2026-08-10",
+      "quantity": 275,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0043": {
+      "productId": "pasta_500g",
+      "date": "2026-08-17",
+      "quantity": 202,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0044": {
+      "productId": "pasta_500g",
+      "date": "2026-08-24",
+      "quantity": 168,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0045": {
+      "productId": "pasta_500g",
+      "date": "2026-08-31",
+      "quantity": 0,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0046": {
+      "productId": "pasta_500g",
+      "date": "2026-09-07",
+      "quantity": 317,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0047": {
+      "productId": "pasta_500g",
+      "date": "2026-09-14",
+      "quantity": 216,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0048": {
+      "productId": "pasta_500g",
+      "date": "2026-09-21",
+      "quantity": 325,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0049": {
+      "productId": "pasta_500g",
+      "date": "2026-09-28",
+      "quantity": 244,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0050": {
+      "productId": "pasta_500g",
+      "date": "2026-10-05",
+      "quantity": 327,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0051": {
+      "productId": "pasta_500g",
+      "date": "2026-10-12",
+      "quantity": 391,
+      "unit": "packet",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0052": {
+      "productId": "pasta_500g",
+      "date": "2026-10-19",
+      "quantity": 303,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0053": {
+      "productId": "rice_1kg",
+      "date": "2025-10-27",
+      "quantity": 204,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0054": {
+      "productId": "rice_1kg",
+      "date": "2025-11-03",
+      "quantity": 229,
+      "unit": "bag",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0055": {
+      "productId": "rice_1kg",
+      "date": "2025-11-10",
+      "quantity": 174,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0056": {
+      "productId": "rice_1kg",
+      "date": "2025-11-17",
+      "quantity": 210,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0057": {
+      "productId": "rice_1kg",
+      "date": "2025-11-24",
+      "quantity": 137,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0058": {
+      "productId": "rice_1kg",
+      "date": "2025-12-01",
+      "quantity": 231,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0059": {
+      "productId": "rice_1kg",
+      "date": "2025-12-08",
+      "quantity": 160,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0060": {
+      "productId": "rice_1kg",
+      "date": "2025-12-15",
+      "quantity": 271,
+      "unit": "bag",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0061": {
+      "productId": "rice_1kg",
+      "date": "2025-12-22",
+      "quantity": 206,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0062": {
+      "productId": "rice_1kg",
+      "date": "2025-12-29",
+      "quantity": 217,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0063": {
+      "productId": "rice_1kg",
+      "date": "2026-01-05",
+      "quantity": 162,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0064": {
+      "productId": "rice_1kg",
+      "date": "2026-01-12",
+      "quantity": 83,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0065": {
+      "productId": "rice_1kg",
+      "date": "2026-01-19",
+      "quantity": 96,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0066": {
+      "productId": "rice_1kg",
+      "date": "2026-01-26",
+      "quantity": 20,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0067": {
+      "productId": "rice_1kg",
+      "date": "2026-02-02",
+      "quantity": 118,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0068": {
+      "productId": "rice_1kg",
+      "date": "2026-02-09",
+      "quantity": 66,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0069": {
+      "productId": "rice_1kg",
+      "date": "2026-02-16",
+      "quantity": 171,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0070": {
+      "productId": "rice_1kg",
+      "date": "2026-02-23",
+      "quantity": 136,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0071": {
+      "productId": "rice_1kg",
+      "date": "2026-03-02",
+      "quantity": 51,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0072": {
+      "productId": "rice_1kg",
+      "date": "2026-03-09",
+      "quantity": 0,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0073": {
+      "productId": "rice_1kg",
+      "date": "2026-03-16",
+      "quantity": 78,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0074": {
+      "productId": "rice_1kg",
+      "date": "2026-03-23",
+      "quantity": 235,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0075": {
+      "productId": "rice_1kg",
+      "date": "2026-03-30",
+      "quantity": 137,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0076": {
+      "productId": "rice_1kg",
+      "date": "2026-04-06",
+      "quantity": 171,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0077": {
+      "productId": "rice_1kg",
+      "date": "2026-04-13",
+      "quantity": 96,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0078": {
+      "productId": "rice_1kg",
+      "date": "2026-04-20",
+      "quantity": 224,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0079": {
+      "productId": "rice_1kg",
+      "date": "2026-04-27",
+      "quantity": 151,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0080": {
+      "productId": "rice_1kg",
+      "date": "2026-05-04",
+      "quantity": 116,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0081": {
+      "productId": "rice_1kg",
+      "date": "2026-05-11",
+      "quantity": 66,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0082": {
+      "productId": "rice_1kg",
+      "date": "2026-05-18",
+      "quantity": 205,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0083": {
+      "productId": "rice_1kg",
+      "date": "2026-05-25",
+      "quantity": 101,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0084": {
+      "productId": "rice_1kg",
+      "date": "2026-06-01",
+      "quantity": 216,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0085": {
+      "productId": "rice_1kg",
+      "date": "2026-06-08",
+      "quantity": 170,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0086": {
+      "productId": "rice_1kg",
+      "date": "2026-06-15",
+      "quantity": 146,
+      "unit": "bag",
+      "note": "stock take corrected",
+      "source": "sample_dataset"
+    },
+    "record_0087": {
+      "productId": "rice_1kg",
+      "date": "2026-06-22",
+      "quantity": 77,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0088": {
+      "productId": "rice_1kg",
+      "date": "2026-06-29",
+      "quantity": 194,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0089": {
+      "productId": "rice_1kg",
+      "date": "2026-07-06",
+      "quantity": 112,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0090": {
+      "productId": "rice_1kg",
+      "date": "2026-07-13",
+      "quantity": 180,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0091": {
+      "productId": "rice_1kg",
+      "date": "2026-07-20",
+      "quantity": 118,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0092": {
+      "productId": "rice_1kg",
+      "date": "2026-07-27",
+      "quantity": 204,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0093": {
+      "productId": "rice_1kg",
+      "date": "2026-08-03",
+      "quantity": 133,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0094": {
+      "productId": "rice_1kg",
+      "date": "2026-08-10",
+      "quantity": 60,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0095": {
+      "productId": "rice_1kg",
+      "date": "2026-08-17",
+      "quantity": 126,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0096": {
+      "productId": "rice_1kg",
+      "date": "2026-08-24",
+      "quantity": 192,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0097": {
+      "productId": "rice_1kg",
+      "date": "2026-08-31",
+      "quantity": 106,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0098": {
+      "productId": "rice_1kg",
+      "date": "2026-09-07",
+      "quantity": 45,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0099": {
+      "productId": "rice_1kg",
+      "date": "2026-09-14",
+      "quantity": 159,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0100": {
+      "productId": "rice_1kg",
+      "date": "2026-09-21",
+      "quantity": 196,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0101": {
+      "productId": "rice_1kg",
+      "date": "2026-09-28",
+      "quantity": 148,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0102": {
+      "productId": "rice_1kg",
+      "date": "2026-10-05",
+      "quantity": 189,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0103": {
+      "productId": "rice_1kg",
+      "date": "2026-10-12",
+      "quantity": 208,
+      "unit": "bag",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0104": {
+      "productId": "rice_1kg",
+      "date": "2026-10-19",
+      "quantity": 189,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0105": {
+      "productId": "oats_1kg",
+      "date": "2025-10-27",
+      "quantity": 129,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0106": {
+      "productId": "oats_1kg",
+      "date": "2025-11-03",
+      "quantity": 160,
+      "unit": "bag",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0107": {
+      "productId": "oats_1kg",
+      "date": "2025-11-10",
+      "quantity": 134,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0108": {
+      "productId": "oats_1kg",
+      "date": "2025-11-17",
+      "quantity": 139,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0109": {
+      "productId": "oats_1kg",
+      "date": "2025-11-24",
+      "quantity": 114,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0110": {
+      "productId": "oats_1kg",
+      "date": "2025-12-01",
+      "quantity": 127,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0111": {
+      "productId": "oats_1kg",
+      "date": "2025-12-08",
+      "quantity": 75,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0112": {
+      "productId": "oats_1kg",
+      "date": "2025-12-15",
+      "quantity": 178,
+      "unit": "bag",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0113": {
+      "productId": "oats_1kg",
+      "date": "2025-12-22",
+      "quantity": 156,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0114": {
+      "productId": "oats_1kg",
+      "date": "2025-12-29",
+      "quantity": 113,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0115": {
+      "productId": "oats_1kg",
+      "date": "2026-01-05",
+      "quantity": 28,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0116": {
+      "productId": "oats_1kg",
+      "date": "2026-01-12",
+      "quantity": 112,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0117": {
+      "productId": "oats_1kg",
+      "date": "2026-01-19",
+      "quantity": 69,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0118": {
+      "productId": "oats_1kg",
+      "date": "2026-01-26",
+      "quantity": 107,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0119": {
+      "productId": "oats_1kg",
+      "date": "2026-02-02",
+      "quantity": 50,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0120": {
+      "productId": "oats_1kg",
+      "date": "2026-02-09",
+      "quantity": 149,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0121": {
+      "productId": "oats_1kg",
+      "date": "2026-02-16",
+      "quantity": 109,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0122": {
+      "productId": "oats_1kg",
+      "date": "2026-02-23",
+      "quantity": 134,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0123": {
+      "productId": "oats_1kg",
+      "date": "2026-03-02",
+      "quantity": 86,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0124": {
+      "productId": "oats_1kg",
+      "date": "2026-03-09",
+      "quantity": 159,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0125": {
+      "productId": "oats_1kg",
+      "date": "2026-03-16",
+      "quantity": 140,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0126": {
+      "productId": "oats_1kg",
+      "date": "2026-03-23",
+      "quantity": 134,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0127": {
+      "productId": "oats_1kg",
+      "date": "2026-03-30",
+      "quantity": 100,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0128": {
+      "productId": "oats_1kg",
+      "date": "2026-04-06",
+      "quantity": 143,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0129": {
+      "productId": "oats_1kg",
+      "date": "2026-04-13",
+      "quantity": 93,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0130": {
+      "productId": "oats_1kg",
+      "date": "2026-04-20",
+      "quantity": 56,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0131": {
+      "productId": "oats_1kg",
+      "date": "2026-04-27",
+      "quantity": 107,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0132": {
+      "productId": "oats_1kg",
+      "date": "2026-05-04",
+      "quantity": 152,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0133": {
+      "productId": "oats_1kg",
+      "date": "2026-05-11",
+      "quantity": 124,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0134": {
+      "productId": "oats_1kg",
+      "date": "2026-05-18",
+      "quantity": 71,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0135": {
+      "productId": "oats_1kg",
+      "date": "2026-05-25",
+      "quantity": 105,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0136": {
+      "productId": "oats_1kg",
+      "date": "2026-06-01",
+      "quantity": 140,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0137": {
+      "productId": "oats_1kg",
+      "date": "2026-06-08",
+      "quantity": 116,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0138": {
+      "productId": "oats_1kg",
+      "date": "2026-06-15",
+      "quantity": 125,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0139": {
+      "productId": "oats_1kg",
+      "date": "2026-06-22",
+      "quantity": 84,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0140": {
+      "productId": "oats_1kg",
+      "date": "2026-06-29",
+      "quantity": 133,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0141": {
+      "productId": "oats_1kg",
+      "date": "2026-07-06",
+      "quantity": 108,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0142": {
+      "productId": "oats_1kg",
+      "date": "2026-07-13",
+      "quantity": 150,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0143": {
+      "productId": "oats_1kg",
+      "date": "2026-07-20",
+      "quantity": 85,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0144": {
+      "productId": "oats_1kg",
+      "date": "2026-07-27",
+      "quantity": 122,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0145": {
+      "productId": "oats_1kg",
+      "date": "2026-08-10",
+      "quantity": 30,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0146": {
+      "productId": "oats_1kg",
+      "date": "2026-08-17",
+      "quantity": 73,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0147": {
+      "productId": "oats_1kg",
+      "date": "2026-08-24",
+      "quantity": 124,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0148": {
+      "productId": "oats_1kg",
+      "date": "2026-08-31",
+      "quantity": 73,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0149": {
+      "productId": "oats_1kg",
+      "date": "2026-09-07",
+      "quantity": 146,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0150": {
+      "productId": "oats_1kg",
+      "date": "2026-09-14",
+      "quantity": 116,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0151": {
+      "productId": "oats_1kg",
+      "date": "2026-09-21",
+      "quantity": 138,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0152": {
+      "productId": "oats_1kg",
+      "date": "2026-09-28",
+      "quantity": 101,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0153": {
+      "productId": "oats_1kg",
+      "date": "2026-10-05",
+      "quantity": 141,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0154": {
+      "productId": "oats_1kg",
+      "date": "2026-10-12",
+      "quantity": 165,
+      "unit": "bag",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0155": {
+      "productId": "oats_1kg",
+      "date": "2026-10-19",
+      "quantity": 150,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0156": {
+      "productId": "peas_tin",
+      "date": "2025-10-27",
+      "quantity": 187,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0157": {
+      "productId": "peas_tin",
+      "date": "2025-11-03",
+      "quantity": 231,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0158": {
+      "productId": "peas_tin",
+      "date": "2025-11-10",
+      "quantity": 184,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0159": {
+      "productId": "peas_tin",
+      "date": "2025-11-17",
+      "quantity": 216,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0160": {
+      "productId": "peas_tin",
+      "date": "2025-11-24",
+      "quantity": 174,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0161": {
+      "productId": "peas_tin",
+      "date": "2025-12-01",
+      "quantity": 210,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0162": {
+      "productId": "peas_tin",
+      "date": "2025-12-08",
+      "quantity": 162,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0163": {
+      "productId": "peas_tin",
+      "date": "2025-12-15",
+      "quantity": 275,
+      "unit": "tin",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0164": {
+      "productId": "peas_tin",
+      "date": "2025-12-22",
+      "quantity": 207,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0165": {
+      "productId": "peas_tin",
+      "date": "2025-12-29",
+      "quantity": 184,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0166": {
+      "productId": "peas_tin",
+      "date": "2026-01-05",
+      "quantity": 81,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0167": {
+      "productId": "peas_tin",
+      "date": "2026-01-12",
+      "quantity": 212,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0168": {
+      "productId": "peas_tin",
+      "date": "2026-01-19",
+      "quantity": 119,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0169": {
+      "productId": "peas_tin",
+      "date": "2026-01-26",
+      "quantity": 158,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0170": {
+      "productId": "peas_tin",
+      "date": "2026-02-02",
+      "quantity": 92,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0171": {
+      "productId": "peas_tin",
+      "date": "2026-02-09",
+      "quantity": 162,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0172": {
+      "productId": "peas_tin",
+      "date": "2026-02-16",
+      "quantity": 115,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0173": {
+      "productId": "peas_tin",
+      "date": "2026-02-23",
+      "quantity": 214,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0174": {
+      "productId": "peas_tin",
+      "date": "2026-03-02",
+      "quantity": 170,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0175": {
+      "productId": "peas_tin",
+      "date": "2026-03-09",
+      "quantity": 231,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0176": {
+      "productId": "peas_tin",
+      "date": "2026-03-16",
+      "quantity": 147,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0177": {
+      "productId": "peas_tin",
+      "date": "2026-03-23",
+      "quantity": 199,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0178": {
+      "productId": "peas_tin",
+      "date": "2026-03-30",
+      "quantity": 155,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0179": {
+      "productId": "peas_tin",
+      "date": "2026-04-06",
+      "quantity": 187,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0180": {
+      "productId": "peas_tin",
+      "date": "2026-04-13",
+      "quantity": 152,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0181": {
+      "productId": "peas_tin",
+      "date": "2026-04-20",
+      "quantity": 188,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0182": {
+      "productId": "peas_tin",
+      "date": "2026-04-27",
+      "quantity": 130,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0183": {
+      "productId": "peas_tin",
+      "date": "2026-05-04",
+      "quantity": 81,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0184": {
+      "productId": "peas_tin",
+      "date": "2026-05-11",
+      "quantity": 158,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0185": {
+      "productId": "peas_tin",
+      "date": "2026-05-18",
+      "quantity": 218,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0186": {
+      "productId": "peas_tin",
+      "date": "2026-05-25",
+      "quantity": 181,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0187": {
+      "productId": "peas_tin",
+      "date": "2026-06-01",
+      "quantity": 146,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0188": {
+      "productId": "peas_tin",
+      "date": "2026-06-08",
+      "quantity": 150,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0189": {
+      "productId": "peas_tin",
+      "date": "2026-06-15",
+      "quantity": 209,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0190": {
+      "productId": "peas_tin",
+      "date": "2026-06-22",
+      "quantity": 175,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0191": {
+      "productId": "peas_tin",
+      "date": "2026-06-29",
+      "quantity": 216,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0192": {
+      "productId": "peas_tin",
+      "date": "2026-07-06",
+      "quantity": 168,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0193": {
+      "productId": "peas_tin",
+      "date": "2026-07-13",
+      "quantity": 207,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0194": {
+      "productId": "peas_tin",
+      "date": "2026-07-20",
+      "quantity": 164,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0195": {
+      "productId": "peas_tin",
+      "date": "2026-07-27",
+      "quantity": 198,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0196": {
+      "productId": "peas_tin",
+      "date": "2026-08-03",
+      "quantity": 129,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0197": {
+      "productId": "peas_tin",
+      "date": "2026-08-10",
+      "quantity": 197,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0198": {
+      "productId": "peas_tin",
+      "date": "2026-08-17",
+      "quantity": 123,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0199": {
+      "productId": "peas_tin",
+      "date": "2026-08-24",
+      "quantity": 50,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0200": {
+      "productId": "peas_tin",
+      "date": "2026-08-31",
+      "quantity": 129,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0201": {
+      "productId": "peas_tin",
+      "date": "2026-09-07",
+      "quantity": 39,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0202": {
+      "productId": "peas_tin",
+      "date": "2026-09-14",
+      "quantity": 121,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0203": {
+      "productId": "peas_tin",
+      "date": "2026-09-21",
+      "quantity": 228,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0204": {
+      "productId": "peas_tin",
+      "date": "2026-09-28",
+      "quantity": 163,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0205": {
+      "productId": "peas_tin",
+      "date": "2026-10-05",
+      "quantity": 112,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0206": {
+      "productId": "peas_tin",
+      "date": "2026-10-12",
+      "quantity": 251,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0207": {
+      "productId": "peas_tin",
+      "date": "2026-10-19",
+      "quantity": 212,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0208": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-10-27",
+      "quantity": 149,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0209": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-11-03",
+      "quantity": 175,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0210": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-11-10",
+      "quantity": 111,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0211": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-11-17",
+      "quantity": 152,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0212": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-11-24",
+      "quantity": 119,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0213": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-12-01",
+      "quantity": 190,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0214": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-12-08",
+      "quantity": 147,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0215": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-12-15",
+      "quantity": 220,
+      "unit": "tin",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0216": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-12-22",
+      "quantity": 169,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0217": {
+      "productId": "sweetcorn_tin",
+      "date": "2025-12-29",
+      "quantity": 146,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0218": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-01-05",
+      "quantity": 70,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0219": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-01-12",
+      "quantity": 173,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0220": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-01-19",
+      "quantity": 129,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0221": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-01-26",
+      "quantity": 76,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0222": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-02-02",
+      "quantity": 87,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0223": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-02-09",
+      "quantity": 139,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0224": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-02-16",
+      "quantity": 97,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0225": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-02-23",
+      "quantity": 165,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0226": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-03-02",
+      "quantity": 120,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0227": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-03-09",
+      "quantity": 162,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0228": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-03-16",
+      "quantity": 112,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0229": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-03-23",
+      "quantity": 161,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0230": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-03-30",
+      "quantity": 123,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0231": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-04-06",
+      "quantity": 177,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0232": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-04-13",
+      "quantity": 126,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0233": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-04-20",
+      "quantity": 82,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0234": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-04-27",
+      "quantity": 137,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0235": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-05-04",
+      "quantity": 167,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0236": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-05-11",
+      "quantity": 138,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0237": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-05-18",
+      "quantity": 179,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0238": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-05-25",
+      "quantity": 139,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0239": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-06-01",
+      "quantity": 138,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0240": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-06-08",
+      "quantity": 85,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0241": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-06-15",
+      "quantity": 165,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0242": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-06-22",
+      "quantity": 130,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0243": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-06-29",
+      "quantity": 150,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0244": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-07-06",
+      "quantity": 101,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0245": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-07-13",
+      "quantity": 171,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0246": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-07-20",
+      "quantity": 126,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0247": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-07-27",
+      "quantity": 179,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0248": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-08-03",
+      "quantity": 140,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0249": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-08-10",
+      "quantity": 168,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0250": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-08-17",
+      "quantity": 127,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0251": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-08-24",
+      "quantity": 78,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0252": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-08-31",
+      "quantity": 126,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0253": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-09-07",
+      "quantity": 155,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0254": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-09-14",
+      "quantity": 128,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0255": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-09-21",
+      "quantity": 192,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0256": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-09-28",
+      "quantity": 155,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0257": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-10-05",
+      "quantity": 164,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0258": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-10-12",
+      "quantity": 190,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0259": {
+      "productId": "sweetcorn_tin",
+      "date": "2026-10-19",
+      "quantity": 169,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0260": {
+      "productId": "baked_beans_tin",
+      "date": "2025-10-27",
+      "quantity": 408,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0261": {
+      "productId": "baked_beans_tin",
+      "date": "2025-11-03",
+      "quantity": 509,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0262": {
+      "productId": "baked_beans_tin",
+      "date": "2025-11-10",
+      "quantity": 435,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0263": {
+      "productId": "baked_beans_tin",
+      "date": "2025-11-17",
+      "quantity": 394,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0264": {
+      "productId": "baked_beans_tin",
+      "date": "2025-11-24",
+      "quantity": 304,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0265": {
+      "productId": "baked_beans_tin",
+      "date": "2025-12-01",
+      "quantity": 338,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0266": {
+      "productId": "baked_beans_tin",
+      "date": "2025-12-08",
+      "quantity": 179,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0267": {
+      "productId": "baked_beans_tin",
+      "date": "2025-12-15",
+      "quantity": 627,
+      "unit": "tin",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0268": {
+      "productId": "baked_beans_tin",
+      "date": "2025-12-22",
+      "quantity": 471,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0269": {
+      "productId": "baked_beans_tin",
+      "date": "2025-12-29",
+      "quantity": 402,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0270": {
+      "productId": "baked_beans_tin",
+      "date": "2026-01-05",
+      "quantity": 225,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0271": {
+      "productId": "baked_beans_tin",
+      "date": "2026-01-12",
+      "quantity": 266,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0272": {
+      "productId": "baked_beans_tin",
+      "date": "2026-01-19",
+      "quantity": 111,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0273": {
+      "productId": "baked_beans_tin",
+      "date": "2026-01-26",
+      "quantity": 403,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0274": {
+      "productId": "baked_beans_tin",
+      "date": "2026-02-02",
+      "quantity": 320,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0275": {
+      "productId": "baked_beans_tin",
+      "date": "2026-02-09",
+      "quantity": 232,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0276": {
+      "productId": "baked_beans_tin",
+      "date": "2026-02-16",
+      "quantity": 364,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0277": {
+      "productId": "baked_beans_tin",
+      "date": "2026-02-23",
+      "quantity": 416,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0278": {
+      "productId": "baked_beans_tin",
+      "date": "2026-03-02",
+      "quantity": 254,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0279": {
+      "productId": "baked_beans_tin",
+      "date": "2026-03-09",
+      "quantity": 187,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0280": {
+      "productId": "baked_beans_tin",
+      "date": "2026-03-16",
+      "quantity": 329,
+      "unit": "tin",
+      "note": "transfer to St Mark's pantry",
+      "source": "sample_dataset"
+    },
+    "record_0281": {
+      "productId": "baked_beans_tin",
+      "date": "2026-03-23",
+      "quantity": 327,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0282": {
+      "productId": "baked_beans_tin",
+      "date": "2026-03-30",
+      "quantity": 220,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0283": {
+      "productId": "baked_beans_tin",
+      "date": "2026-04-06",
+      "quantity": 379,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0284": {
+      "productId": "baked_beans_tin",
+      "date": "2026-04-13",
+      "quantity": 240,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0285": {
+      "productId": "baked_beans_tin",
+      "date": "2026-04-20",
+      "quantity": 347,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0286": {
+      "productId": "baked_beans_tin",
+      "date": "2026-04-27",
+      "quantity": 235,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0287": {
+      "productId": "baked_beans_tin",
+      "date": "2026-05-04",
+      "quantity": 239,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0288": {
+      "productId": "baked_beans_tin",
+      "date": "2026-05-11",
+      "quantity": 113,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0289": {
+      "productId": "baked_beans_tin",
+      "date": "2026-05-18",
+      "quantity": 432,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0290": {
+      "productId": "baked_beans_tin",
+      "date": "2026-05-25",
+      "quantity": 275,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0291": {
+      "productId": "baked_beans_tin",
+      "date": "2026-06-01",
+      "quantity": 266,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0292": {
+      "productId": "baked_beans_tin",
+      "date": "2026-06-08",
+      "quantity": 155,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0293": {
+      "productId": "baked_beans_tin",
+      "date": "2026-06-15",
+      "quantity": 254,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0294": {
+      "productId": "baked_beans_tin",
+      "date": "2026-06-22",
+      "quantity": 138,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0295": {
+      "productId": "baked_beans_tin",
+      "date": "2026-06-29",
+      "quantity": 394,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0296": {
+      "productId": "baked_beans_tin",
+      "date": "2026-07-06",
+      "quantity": 258,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0297": {
+      "productId": "baked_beans_tin",
+      "date": "2026-07-13",
+      "quantity": 299,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0298": {
+      "productId": "baked_beans_tin",
+      "date": "2026-07-20",
+      "quantity": 211,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0299": {
+      "productId": "baked_beans_tin",
+      "date": "2026-07-27",
+      "quantity": 379,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0300": {
+      "productId": "baked_beans_tin",
+      "date": "2026-08-03",
+      "quantity": 270,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0301": {
+      "productId": "baked_beans_tin",
+      "date": "2026-08-10",
+      "quantity": 348,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0302": {
+      "productId": "baked_beans_tin",
+      "date": "2026-08-17",
+      "quantity": 249,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0303": {
+      "productId": "baked_beans_tin",
+      "date": "2026-08-24",
+      "quantity": 375,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0304": {
+      "productId": "baked_beans_tin",
+      "date": "2026-08-31",
+      "quantity": 179,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0305": {
+      "productId": "baked_beans_tin",
+      "date": "2026-09-07",
+      "quantity": 362,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0306": {
+      "productId": "baked_beans_tin",
+      "date": "2026-09-14",
+      "quantity": 261,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0307": {
+      "productId": "baked_beans_tin",
+      "date": "2026-09-21",
+      "quantity": 387,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0308": {
+      "productId": "baked_beans_tin",
+      "date": "2026-09-28",
+      "quantity": 314,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0309": {
+      "productId": "baked_beans_tin",
+      "date": "2026-10-05",
+      "quantity": 304,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0310": {
+      "productId": "baked_beans_tin",
+      "date": "2026-10-12",
+      "quantity": 347,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0311": {
+      "productId": "baked_beans_tin",
+      "date": "2026-10-19",
+      "quantity": 419,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0312": {
+      "productId": "tuna_tin",
+      "date": "2025-10-27",
+      "quantity": 163,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0313": {
+      "productId": "tuna_tin",
+      "date": "2025-11-03",
+      "quantity": 189,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0314": {
+      "productId": "tuna_tin",
+      "date": "2025-11-10",
+      "quantity": 135,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0315": {
+      "productId": "tuna_tin",
+      "date": "2025-11-17",
+      "quantity": 188,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0316": {
+      "productId": "tuna_tin",
+      "date": "2025-11-24",
+      "quantity": 144,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0317": {
+      "productId": "tuna_tin",
+      "date": "2025-12-01",
+      "quantity": 108,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0318": {
+      "productId": "tuna_tin",
+      "date": "2025-12-08",
+      "quantity": 161,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0319": {
+      "productId": "tuna_tin",
+      "date": "2025-12-15",
+      "quantity": 164,
+      "unit": "tin",
+      "note": "christmas collection",
+      "source": "sample_dataset"
+    },
+    "record_0320": {
+      "productId": "tuna_tin",
+      "date": "2025-12-22",
+      "quantity": 166,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0321": {
+      "productId": "tuna_tin",
+      "date": "2025-12-29",
+      "quantity": 186,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0322": {
+      "productId": "tuna_tin",
+      "date": "2026-01-05",
+      "quantity": 136,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0323": {
+      "productId": "tuna_tin",
+      "date": "2026-01-12",
+      "quantity": 192,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0324": {
+      "productId": "tuna_tin",
+      "date": "2026-01-19",
+      "quantity": 123,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0325": {
+      "productId": "tuna_tin",
+      "date": "2026-01-26",
+      "quantity": 197,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0326": {
+      "productId": "tuna_tin",
+      "date": "2026-02-02",
+      "quantity": 154,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0327": {
+      "productId": "tuna_tin",
+      "date": "2026-02-09",
+      "quantity": 110,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0328": {
+      "productId": "tuna_tin",
+      "date": "2026-02-16",
+      "quantity": 120,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0329": {
+      "productId": "tuna_tin",
+      "date": "2026-02-23",
+      "quantity": 202,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0330": {
+      "productId": "tuna_tin",
+      "date": "2026-03-02",
+      "quantity": 143,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0331": {
+      "productId": "tuna_tin",
+      "date": "2026-03-09",
+      "quantity": 202,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0332": {
+      "productId": "tuna_tin",
+      "date": "2026-03-16",
+      "quantity": 133,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0333": {
+      "productId": "tuna_tin",
+      "date": "2026-03-23",
+      "quantity": 198,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0334": {
+      "productId": "tuna_tin",
+      "date": "2026-03-30",
+      "quantity": 149,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0335": {
+      "productId": "tuna_tin",
+      "date": "2026-04-06",
+      "quantity": 162,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0336": {
+      "productId": "tuna_tin",
+      "date": "2026-04-13",
+      "quantity": 123,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0337": {
+      "productId": "tuna_tin",
+      "date": "2026-04-20",
+      "quantity": 212,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0338": {
+      "productId": "tuna_tin",
+      "date": "2026-04-27",
+      "quantity": 164,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0339": {
+      "productId": "tuna_tin",
+      "date": "2026-05-11",
+      "quantity": 172,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0340": {
+      "productId": "tuna_tin",
+      "date": "2026-05-18",
+      "quantity": 140,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0341": {
+      "productId": "tuna_tin",
+      "date": "2026-05-25",
+      "quantity": 116,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0342": {
+      "productId": "tuna_tin",
+      "date": "2026-06-01",
+      "quantity": 44,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0343": {
+      "productId": "tuna_tin",
+      "date": "2026-06-08",
+      "quantity": 124,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0344": {
+      "productId": "tuna_tin",
+      "date": "2026-06-15",
+      "quantity": 68,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0345": {
+      "productId": "tuna_tin",
+      "date": "2026-06-22",
+      "quantity": 130,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0346": {
+      "productId": "tuna_tin",
+      "date": "2026-06-29",
+      "quantity": 174,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0347": {
+      "productId": "tuna_tin",
+      "date": "2026-07-06",
+      "quantity": 127,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0348": {
+      "productId": "tuna_tin",
+      "date": "2026-07-13",
+      "quantity": 173,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0349": {
+      "productId": "tuna_tin",
+      "date": "2026-07-20",
+      "quantity": 123,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0350": {
+      "productId": "tuna_tin",
+      "date": "2026-07-27",
+      "quantity": 222,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0351": {
+      "productId": "tuna_tin",
+      "date": "2026-08-03",
+      "quantity": 186,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0352": {
+      "productId": "tuna_tin",
+      "date": "2026-08-10",
+      "quantity": 180,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0353": {
+      "productId": "tuna_tin",
+      "date": "2026-08-17",
+      "quantity": 133,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0354": {
+      "productId": "tuna_tin",
+      "date": "2026-08-24",
+      "quantity": 192,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0355": {
+      "productId": "tuna_tin",
+      "date": "2026-08-31",
+      "quantity": 99,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0356": {
+      "productId": "tuna_tin",
+      "date": "2026-09-07",
+      "quantity": 200,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0357": {
+      "productId": "tuna_tin",
+      "date": "2026-09-14",
+      "quantity": 127,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0358": {
+      "productId": "tuna_tin",
+      "date": "2026-09-21",
+      "quantity": 194,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0359": {
+      "productId": "tuna_tin",
+      "date": "2026-09-28",
+      "quantity": 164,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0360": {
+      "productId": "tuna_tin",
+      "date": "2026-10-05",
+      "quantity": 185,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0361": {
+      "productId": "tuna_tin",
+      "date": "2026-10-12",
+      "quantity": 218,
+      "unit": "tin",
+      "note": "harvest festival donations",
+      "source": "sample_dataset"
+    },
+    "record_0362": {
+      "productId": "tuna_tin",
+      "date": "2026-10-19",
+      "quantity": 197,
+      "unit": "tin",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0363": {
+      "productId": "apples_bag",
+      "date": "2025-10-27",
+      "quantity": 102,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0364": {
+      "productId": "apples_bag",
+      "date": "2025-11-03",
+      "quantity": 73,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0365": {
+      "productId": "apples_bag",
+      "date": "2025-11-10",
+      "quantity": 59,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0366": {
+      "productId": "apples_bag",
+      "date": "2025-11-17",
+      "quantity": 48,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0367": {
+      "productId": "apples_bag",
+      "date": "2025-11-24",
+      "quantity": 55,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0368": {
+      "productId": "apples_bag",
+      "date": "2025-12-01",
+      "quantity": 64,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0369": {
+      "productId": "apples_bag",
+      "date": "2025-12-08",
+      "quantity": 50,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0370": {
+      "productId": "apples_bag",
+      "date": "2025-12-15",
+      "quantity": 58,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0371": {
+      "productId": "apples_bag",
+      "date": "2025-12-22",
+      "quantity": 47,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0372": {
+      "productId": "apples_bag",
+      "date": "2025-12-29",
+      "quantity": 24,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0373": {
+      "productId": "apples_bag",
+      "date": "2026-01-05",
+      "quantity": 8,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0374": {
+      "productId": "apples_bag",
+      "date": "2026-01-12",
+      "quantity": 26,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0375": {
+      "productId": "apples_bag",
+      "date": "2026-01-19",
+      "quantity": 34,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0376": {
+      "productId": "apples_bag",
+      "date": "2026-01-26",
+      "quantity": 29,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0377": {
+      "productId": "apples_bag",
+      "date": "2026-02-02",
+      "quantity": 37,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0378": {
+      "productId": "apples_bag",
+      "date": "2026-02-09",
+      "quantity": 44,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0379": {
+      "productId": "apples_bag",
+      "date": "2026-02-16",
+      "quantity": 48,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0380": {
+      "productId": "apples_bag",
+      "date": "2026-02-23",
+      "quantity": 52,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0381": {
+      "productId": "apples_bag",
+      "date": "2026-03-02",
+      "quantity": 35,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0382": {
+      "productId": "apples_bag",
+      "date": "2026-03-09",
+      "quantity": 58,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0383": {
+      "productId": "apples_bag",
+      "date": "2026-03-16",
+      "quantity": 78,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0384": {
+      "productId": "apples_bag",
+      "date": "2026-03-23",
+      "quantity": 64,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0385": {
+      "productId": "apples_bag",
+      "date": "2026-03-30",
+      "quantity": 57,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0386": {
+      "productId": "apples_bag",
+      "date": "2026-04-06",
+      "quantity": 46,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0387": {
+      "productId": "apples_bag",
+      "date": "2026-04-13",
+      "quantity": 43,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0388": {
+      "productId": "apples_bag",
+      "date": "2026-04-20",
+      "quantity": 44,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0389": {
+      "productId": "apples_bag",
+      "date": "2026-04-27",
+      "quantity": 63,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0390": {
+      "productId": "apples_bag",
+      "date": "2026-05-04",
+      "quantity": 61,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0391": {
+      "productId": "apples_bag",
+      "date": "2026-05-11",
+      "quantity": 65,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0392": {
+      "productId": "apples_bag",
+      "date": "2026-05-18",
+      "quantity": 81,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0393": {
+      "productId": "apples_bag",
+      "date": "2026-05-25",
+      "quantity": 66,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0394": {
+      "productId": "apples_bag",
+      "date": "2026-06-01",
+      "quantity": 50,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0395": {
+      "productId": "apples_bag",
+      "date": "2026-06-08",
+      "quantity": 63,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0396": {
+      "productId": "apples_bag",
+      "date": "2026-06-15",
+      "quantity": 55,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0397": {
+      "productId": "apples_bag",
+      "date": "2026-06-22",
+      "quantity": 40,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0398": {
+      "productId": "apples_bag",
+      "date": "2026-06-29",
+      "quantity": 50,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0399": {
+      "productId": "apples_bag",
+      "date": "2026-07-06",
+      "quantity": 35,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0400": {
+      "productId": "apples_bag",
+      "date": "2026-07-13",
+      "quantity": 41,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0401": {
+      "productId": "apples_bag",
+      "date": "2026-07-20",
+      "quantity": 0,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0402": {
+      "productId": "apples_bag",
+      "date": "2026-07-27",
+      "quantity": 0,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0403": {
+      "productId": "apples_bag",
+      "date": "2026-08-03",
+      "quantity": 17,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0404": {
+      "productId": "apples_bag",
+      "date": "2026-08-10",
+      "quantity": 11,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0405": {
+      "productId": "apples_bag",
+      "date": "2026-08-17",
+      "quantity": 1,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0406": {
+      "productId": "apples_bag",
+      "date": "2026-08-24",
+      "quantity": 0,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0407": {
+      "productId": "apples_bag",
+      "date": "2026-08-31",
+      "quantity": 10,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0408": {
+      "productId": "apples_bag",
+      "date": "2026-09-07",
+      "quantity": 7,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0409": {
+      "productId": "apples_bag",
+      "date": "2026-09-14",
+      "quantity": 0,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0410": {
+      "productId": "apples_bag",
+      "date": "2026-09-21",
+      "quantity": 14,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0411": {
+      "productId": "apples_bag",
+      "date": "2026-09-28",
+      "quantity": 18,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0412": {
+      "productId": "apples_bag",
+      "date": "2026-10-05",
+      "quantity": 24,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0413": {
+      "productId": "apples_bag",
+      "date": "2026-10-12",
+      "quantity": 25,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0414": {
+      "productId": "apples_bag",
+      "date": "2026-10-19",
+      "quantity": 48,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0415": {
+      "productId": "potatoes_2kg",
+      "date": "2025-10-27",
+      "quantity": 81,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0416": {
+      "productId": "potatoes_2kg",
+      "date": "2025-11-03",
+      "quantity": 76,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0417": {
+      "productId": "potatoes_2kg",
+      "date": "2025-11-10",
+      "quantity": 72,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0418": {
+      "productId": "potatoes_2kg",
+      "date": "2025-11-17",
+      "quantity": 69,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0419": {
+      "productId": "potatoes_2kg",
+      "date": "2025-11-24",
+      "quantity": 68,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0420": {
+      "productId": "potatoes_2kg",
+      "date": "2025-12-01",
+      "quantity": 48,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0421": {
+      "productId": "potatoes_2kg",
+      "date": "2025-12-08",
+      "quantity": 36,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0422": {
+      "productId": "potatoes_2kg",
+      "date": "2025-12-15",
+      "quantity": 27,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0423": {
+      "productId": "potatoes_2kg",
+      "date": "2025-12-22",
+      "quantity": 39,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0424": {
+      "productId": "potatoes_2kg",
+      "date": "2025-12-29",
+      "quantity": 26,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0425": {
+      "productId": "potatoes_2kg",
+      "date": "2026-01-05",
+      "quantity": 29,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0426": {
+      "productId": "potatoes_2kg",
+      "date": "2026-01-12",
+      "quantity": 25,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0427": {
+      "productId": "potatoes_2kg",
+      "date": "2026-01-19",
+      "quantity": 14,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0428": {
+      "productId": "potatoes_2kg",
+      "date": "2026-01-26",
+      "quantity": 22,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0429": {
+      "productId": "potatoes_2kg",
+      "date": "2026-02-02",
+      "quantity": 35,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0430": {
+      "productId": "potatoes_2kg",
+      "date": "2026-02-09",
+      "quantity": 51,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0431": {
+      "productId": "potatoes_2kg",
+      "date": "2026-02-16",
+      "quantity": 56,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0432": {
+      "productId": "potatoes_2kg",
+      "date": "2026-02-23",
+      "quantity": 49,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0433": {
+      "productId": "potatoes_2kg",
+      "date": "2026-03-02",
+      "quantity": 60,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0434": {
+      "productId": "potatoes_2kg",
+      "date": "2026-03-09",
+      "quantity": 58,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0435": {
+      "productId": "potatoes_2kg",
+      "date": "2026-03-16",
+      "quantity": 66,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0436": {
+      "productId": "potatoes_2kg",
+      "date": "2026-03-23",
+      "quantity": 61,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0437": {
+      "productId": "potatoes_2kg",
+      "date": "2026-03-30",
+      "quantity": 72,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0438": {
+      "productId": "potatoes_2kg",
+      "date": "2026-04-06",
+      "quantity": 76,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0439": {
+      "productId": "potatoes_2kg",
+      "date": "2026-04-13",
+      "quantity": 79,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0440": {
+      "productId": "potatoes_2kg",
+      "date": "2026-04-20",
+      "quantity": 78,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0441": {
+      "productId": "potatoes_2kg",
+      "date": "2026-04-27",
+      "quantity": 63,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0442": {
+      "productId": "potatoes_2kg",
+      "date": "2026-05-04",
+      "quantity": 65,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0443": {
+      "productId": "potatoes_2kg",
+      "date": "2026-05-11",
+      "quantity": 63,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0444": {
+      "productId": "potatoes_2kg",
+      "date": "2026-05-18",
+      "quantity": 40,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0445": {
+      "productId": "potatoes_2kg",
+      "date": "2026-05-25",
+      "quantity": 46,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0446": {
+      "productId": "potatoes_2kg",
+      "date": "2026-06-01",
+      "quantity": 53,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0447": {
+      "productId": "potatoes_2kg",
+      "date": "2026-06-08",
+      "quantity": 50,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0448": {
+      "productId": "potatoes_2kg",
+      "date": "2026-06-15",
+      "quantity": 58,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0449": {
+      "productId": "potatoes_2kg",
+      "date": "2026-06-22",
+      "quantity": 59,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0450": {
+      "productId": "potatoes_2kg",
+      "date": "2026-06-29",
+      "quantity": 59,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0451": {
+      "productId": "potatoes_2kg",
+      "date": "2026-07-06",
+      "quantity": 66,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0452": {
+      "productId": "potatoes_2kg",
+      "date": "2026-07-13",
+      "quantity": 57,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0453": {
+      "productId": "potatoes_2kg",
+      "date": "2026-07-20",
+      "quantity": 34,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0454": {
+      "productId": "potatoes_2kg",
+      "date": "2026-07-27",
+      "quantity": 43,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0455": {
+      "productId": "potatoes_2kg",
+      "date": "2026-08-03",
+      "quantity": 40,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0456": {
+      "productId": "potatoes_2kg",
+      "date": "2026-08-10",
+      "quantity": 37,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0457": {
+      "productId": "potatoes_2kg",
+      "date": "2026-08-17",
+      "quantity": 39,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0458": {
+      "productId": "potatoes_2kg",
+      "date": "2026-08-24",
+      "quantity": 50,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0459": {
+      "productId": "potatoes_2kg",
+      "date": "2026-08-31",
+      "quantity": 39,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0460": {
+      "productId": "potatoes_2kg",
+      "date": "2026-09-07",
+      "quantity": 51,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0461": {
+      "productId": "potatoes_2kg",
+      "date": "2026-09-14",
+      "quantity": 41,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0462": {
+      "productId": "potatoes_2kg",
+      "date": "2026-09-21",
+      "quantity": 40,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0463": {
+      "productId": "potatoes_2kg",
+      "date": "2026-09-28",
+      "quantity": 40,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0464": {
+      "productId": "potatoes_2kg",
+      "date": "2026-10-05",
+      "quantity": 44,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0465": {
+      "productId": "potatoes_2kg",
+      "date": "2026-10-12",
+      "quantity": 58,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0466": {
+      "productId": "potatoes_2kg",
+      "date": "2026-10-19",
+      "quantity": 53,
+      "unit": "bag",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0467": {
+      "productId": "infant_formula",
+      "date": "2025-10-27",
+      "quantity": 40,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0468": {
+      "productId": "infant_formula",
+      "date": "2025-11-03",
+      "quantity": 32,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0469": {
+      "productId": "infant_formula",
+      "date": "2025-11-10",
+      "quantity": 26,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0470": {
+      "productId": "infant_formula",
+      "date": "2025-11-17",
+      "quantity": 15,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0471": {
+      "productId": "infant_formula",
+      "date": "2025-11-24",
+      "quantity": 39,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0472": {
+      "productId": "infant_formula",
+      "date": "2025-12-01",
+      "quantity": 33,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0473": {
+      "productId": "infant_formula",
+      "date": "2025-12-08",
+      "quantity": 23,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0474": {
+      "productId": "infant_formula",
+      "date": "2025-12-15",
+      "quantity": 30,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0475": {
+      "productId": "infant_formula",
+      "date": "2025-12-22",
+      "quantity": 10,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0476": {
+      "productId": "infant_formula",
+      "date": "2025-12-29",
+      "quantity": 40,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0477": {
+      "productId": "infant_formula",
+      "date": "2026-01-05",
+      "quantity": 22,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0478": {
+      "productId": "infant_formula",
+      "date": "2026-01-12",
+      "quantity": 42,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0479": {
+      "productId": "infant_formula",
+      "date": "2026-01-19",
+      "quantity": 31,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0480": {
+      "productId": "infant_formula",
+      "date": "2026-01-26",
+      "quantity": 43,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0481": {
+      "productId": "infant_formula",
+      "date": "2026-02-02",
+      "quantity": 41,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0482": {
+      "productId": "infant_formula",
+      "date": "2026-02-09",
+      "quantity": 46,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0483": {
+      "productId": "infant_formula",
+      "date": "2026-02-16",
+      "quantity": 37,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0484": {
+      "productId": "infant_formula",
+      "date": "2026-02-23",
+      "quantity": 38,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0485": {
+      "productId": "infant_formula",
+      "date": "2026-03-02",
+      "quantity": 27,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0486": {
+      "productId": "infant_formula",
+      "date": "2026-03-09",
+      "quantity": 37,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0487": {
+      "productId": "infant_formula",
+      "date": "2026-03-16",
+      "quantity": 21,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0488": {
+      "productId": "infant_formula",
+      "date": "2026-03-23",
+      "quantity": 10,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0489": {
+      "productId": "infant_formula",
+      "date": "2026-03-30",
+      "quantity": 27,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0490": {
+      "productId": "infant_formula",
+      "date": "2026-04-06",
+      "quantity": 49,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0491": {
+      "productId": "infant_formula",
+      "date": "2026-04-13",
+      "quantity": 40,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0492": {
+      "productId": "infant_formula",
+      "date": "2026-04-20",
+      "quantity": 49,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0493": {
+      "productId": "infant_formula",
+      "date": "2026-04-27",
+      "quantity": 44,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0494": {
+      "productId": "infant_formula",
+      "date": "2026-05-04",
+      "quantity": 51,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0495": {
+      "productId": "infant_formula",
+      "date": "2026-05-11",
+      "quantity": 35,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0496": {
+      "productId": "infant_formula",
+      "date": "2026-05-18",
+      "quantity": 46,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0497": {
+      "productId": "infant_formula",
+      "date": "2026-05-25",
+      "quantity": 35,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0498": {
+      "productId": "infant_formula",
+      "date": "2026-06-01",
+      "quantity": 45,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0499": {
+      "productId": "infant_formula",
+      "date": "2026-06-08",
+      "quantity": 26,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0500": {
+      "productId": "infant_formula",
+      "date": "2026-06-15",
+      "quantity": 38,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0501": {
+      "productId": "infant_formula",
+      "date": "2026-06-22",
+      "quantity": 28,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0502": {
+      "productId": "infant_formula",
+      "date": "2026-06-29",
+      "quantity": 47,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0503": {
+      "productId": "infant_formula",
+      "date": "2026-07-06",
+      "quantity": 32,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0504": {
+      "productId": "infant_formula",
+      "date": "2026-07-13",
+      "quantity": 27,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0505": {
+      "productId": "infant_formula",
+      "date": "2026-07-20",
+      "quantity": 41,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0506": {
+      "productId": "infant_formula",
+      "date": "2026-07-27",
+      "quantity": 31,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0507": {
+      "productId": "infant_formula",
+      "date": "2026-08-03",
+      "quantity": 40,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0508": {
+      "productId": "infant_formula",
+      "date": "2026-08-10",
+      "quantity": 44,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0509": {
+      "productId": "infant_formula",
+      "date": "2026-08-17",
+      "quantity": 18,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0510": {
+      "productId": "infant_formula",
+      "date": "2026-08-24",
+      "quantity": 43,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0511": {
+      "productId": "infant_formula",
+      "date": "2026-08-31",
+      "quantity": 36,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0512": {
+      "productId": "infant_formula",
+      "date": "2026-09-07",
+      "quantity": 50,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0513": {
+      "productId": "infant_formula",
+      "date": "2026-09-14",
+      "quantity": 40,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0514": {
+      "productId": "infant_formula",
+      "date": "2026-09-21",
+      "quantity": 45,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0515": {
+      "productId": "infant_formula",
+      "date": "2026-09-28",
+      "quantity": 20,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0516": {
+      "productId": "infant_formula",
+      "date": "2026-10-05",
+      "quantity": 0,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0517": {
+      "productId": "infant_formula",
+      "date": "2026-10-12",
+      "quantity": 0,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0518": {
+      "productId": "infant_formula",
+      "date": "2026-10-19",
+      "quantity": 0,
+      "unit": "tub",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0519": {
+      "productId": "baby_food_jar",
+      "date": "2025-10-27",
+      "quantity": 102,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0520": {
+      "productId": "baby_food_jar",
+      "date": "2025-11-03",
+      "quantity": 78,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0521": {
+      "productId": "baby_food_jar",
+      "date": "2025-11-10",
+      "quantity": 50,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0522": {
+      "productId": "baby_food_jar",
+      "date": "2025-11-17",
+      "quantity": 129,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0523": {
+      "productId": "baby_food_jar",
+      "date": "2025-11-24",
+      "quantity": 69,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0524": {
+      "productId": "baby_food_jar",
+      "date": "2025-12-01",
+      "quantity": 112,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0525": {
+      "productId": "baby_food_jar",
+      "date": "2025-12-08",
+      "quantity": 94,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0526": {
+      "productId": "baby_food_jar",
+      "date": "2025-12-15",
+      "quantity": 114,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0527": {
+      "productId": "baby_food_jar",
+      "date": "2025-12-22",
+      "quantity": 89,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0528": {
+      "productId": "baby_food_jar",
+      "date": "2025-12-29",
+      "quantity": 87,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0529": {
+      "productId": "baby_food_jar",
+      "date": "2026-01-05",
+      "quantity": 54,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0530": {
+      "productId": "baby_food_jar",
+      "date": "2026-01-12",
+      "quantity": 101,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0531": {
+      "productId": "baby_food_jar",
+      "date": "2026-01-19",
+      "quantity": 67,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0532": {
+      "productId": "baby_food_jar",
+      "date": "2026-01-26",
+      "quantity": 115,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0533": {
+      "productId": "baby_food_jar",
+      "date": "2026-02-02",
+      "quantity": 94,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0534": {
+      "productId": "baby_food_jar",
+      "date": "2026-02-09",
+      "quantity": 123,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0535": {
+      "productId": "baby_food_jar",
+      "date": "2026-02-16",
+      "quantity": 76,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0536": {
+      "productId": "baby_food_jar",
+      "date": "2026-02-23",
+      "quantity": 111,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0537": {
+      "productId": "baby_food_jar",
+      "date": "2026-03-02",
+      "quantity": 86,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0538": {
+      "productId": "baby_food_jar",
+      "date": "2026-03-09",
+      "quantity": 113,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0539": {
+      "productId": "baby_food_jar",
+      "date": "2026-03-16",
+      "quantity": 71,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0540": {
+      "productId": "baby_food_jar",
+      "date": "2026-03-23",
+      "quantity": 99,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0541": {
+      "productId": "baby_food_jar",
+      "date": "2026-03-30",
+      "quantity": 81,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0542": {
+      "productId": "baby_food_jar",
+      "date": "2026-04-06",
+      "quantity": 120,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0543": {
+      "productId": "baby_food_jar",
+      "date": "2026-04-13",
+      "quantity": 102,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0544": {
+      "productId": "baby_food_jar",
+      "date": "2026-04-20",
+      "quantity": 79,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0545": {
+      "productId": "baby_food_jar",
+      "date": "2026-04-27",
+      "quantity": 70,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0546": {
+      "productId": "baby_food_jar",
+      "date": "2026-05-04",
+      "quantity": 105,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0547": {
+      "productId": "baby_food_jar",
+      "date": "2026-05-11",
+      "quantity": 72,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0548": {
+      "productId": "baby_food_jar",
+      "date": "2026-05-18",
+      "quantity": 115,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0549": {
+      "productId": "baby_food_jar",
+      "date": "2026-05-25",
+      "quantity": 86,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0550": {
+      "productId": "baby_food_jar",
+      "date": "2026-06-01",
+      "quantity": 79,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0551": {
+      "productId": "baby_food_jar",
+      "date": "2026-06-08",
+      "quantity": 41,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0552": {
+      "productId": "baby_food_jar",
+      "date": "2026-06-15",
+      "quantity": 130,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0553": {
+      "productId": "baby_food_jar",
+      "date": "2026-06-22",
+      "quantity": 105,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0554": {
+      "productId": "baby_food_jar",
+      "date": "2026-06-29",
+      "quantity": 121,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0555": {
+      "productId": "baby_food_jar",
+      "date": "2026-07-06",
+      "quantity": 89,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0556": {
+      "productId": "baby_food_jar",
+      "date": "2026-07-13",
+      "quantity": 128,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0557": {
+      "productId": "baby_food_jar",
+      "date": "2026-07-20",
+      "quantity": 104,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0558": {
+      "productId": "baby_food_jar",
+      "date": "2026-07-27",
+      "quantity": 75,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0559": {
+      "productId": "baby_food_jar",
+      "date": "2026-08-03",
+      "quantity": 56,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0560": {
+      "productId": "baby_food_jar",
+      "date": "2026-08-10",
+      "quantity": 118,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0561": {
+      "productId": "baby_food_jar",
+      "date": "2026-08-17",
+      "quantity": 83,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0562": {
+      "productId": "baby_food_jar",
+      "date": "2026-08-24",
+      "quantity": 115,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0563": {
+      "productId": "baby_food_jar",
+      "date": "2026-08-31",
+      "quantity": 70,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0564": {
+      "productId": "baby_food_jar",
+      "date": "2026-09-07",
+      "quantity": 116,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0565": {
+      "productId": "baby_food_jar",
+      "date": "2026-09-14",
+      "quantity": 80,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0566": {
+      "productId": "baby_food_jar",
+      "date": "2026-09-21",
+      "quantity": 101,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0567": {
+      "productId": "baby_food_jar",
+      "date": "2026-09-28",
+      "quantity": 86,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0568": {
+      "productId": "baby_food_jar",
+      "date": "2026-10-05",
+      "quantity": 127,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0569": {
+      "productId": "baby_food_jar",
+      "date": "2026-10-12",
+      "quantity": 88,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0570": {
+      "productId": "baby_food_jar",
+      "date": "2026-10-19",
+      "quantity": 98,
+      "unit": "jar",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0571": {
+      "productId": "toothpaste",
+      "date": "2025-10-27",
+      "quantity": 115,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0572": {
+      "productId": "toothpaste",
+      "date": "2025-11-03",
+      "quantity": 70,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0573": {
+      "productId": "toothpaste",
+      "date": "2025-11-10",
+      "quantity": 36,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0574": {
+      "productId": "toothpaste",
+      "date": "2025-11-17",
+      "quantity": 0,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0575": {
+      "productId": "toothpaste",
+      "date": "2025-11-24",
+      "quantity": 85,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0576": {
+      "productId": "toothpaste",
+      "date": "2025-12-01",
+      "quantity": 135,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0577": {
+      "productId": "toothpaste",
+      "date": "2025-12-08",
+      "quantity": 100,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0578": {
+      "productId": "toothpaste",
+      "date": "2025-12-15",
+      "quantity": 116,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0579": {
+      "productId": "toothpaste",
+      "date": "2025-12-22",
+      "quantity": 77,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0580": {
+      "productId": "toothpaste",
+      "date": "2025-12-29",
+      "quantity": 128,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0581": {
+      "productId": "toothpaste",
+      "date": "2026-01-05",
+      "quantity": 89,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0582": {
+      "productId": "toothpaste",
+      "date": "2026-01-12",
+      "quantity": 98,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0583": {
+      "productId": "toothpaste",
+      "date": "2026-01-19",
+      "quantity": 65,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0584": {
+      "productId": "toothpaste",
+      "date": "2026-01-26",
+      "quantity": 133,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0585": {
+      "productId": "toothpaste",
+      "date": "2026-02-02",
+      "quantity": 107,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0586": {
+      "productId": "toothpaste",
+      "date": "2026-02-09",
+      "quantity": 62,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0587": {
+      "productId": "toothpaste",
+      "date": "2026-02-16",
+      "quantity": 83,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0588": {
+      "productId": "toothpaste",
+      "date": "2026-02-23",
+      "quantity": 135,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0589": {
+      "productId": "toothpaste",
+      "date": "2026-03-02",
+      "quantity": 105,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0590": {
+      "productId": "toothpaste",
+      "date": "2026-03-09",
+      "quantity": 132,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0591": {
+      "productId": "toothpaste",
+      "date": "2026-03-16",
+      "quantity": 115,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0592": {
+      "productId": "toothpaste",
+      "date": "2026-03-23",
+      "quantity": 108,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0593": {
+      "productId": "toothpaste",
+      "date": "2026-03-30",
+      "quantity": 81,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0594": {
+      "productId": "toothpaste",
+      "date": "2026-04-06",
+      "quantity": 141,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0595": {
+      "productId": "toothpaste",
+      "date": "2026-04-13",
+      "quantity": 96,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0596": {
+      "productId": "toothpaste",
+      "date": "2026-04-20",
+      "quantity": 108,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0597": {
+      "productId": "toothpaste",
+      "date": "2026-04-27",
+      "quantity": 85,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0598": {
+      "productId": "toothpaste",
+      "date": "2026-05-04",
+      "quantity": 133,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0599": {
+      "productId": "toothpaste",
+      "date": "2026-05-11",
+      "quantity": 70,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0600": {
+      "productId": "toothpaste",
+      "date": "2026-05-18",
+      "quantity": 90,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0601": {
+      "productId": "toothpaste",
+      "date": "2026-05-25",
+      "quantity": 47,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0602": {
+      "productId": "toothpaste",
+      "date": "2026-06-01",
+      "quantity": 144,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0603": {
+      "productId": "toothpaste",
+      "date": "2026-06-08",
+      "quantity": 104,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0604": {
+      "productId": "toothpaste",
+      "date": "2026-06-15",
+      "quantity": 133,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0605": {
+      "productId": "toothpaste",
+      "date": "2026-06-22",
+      "quantity": 99,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0606": {
+      "productId": "toothpaste",
+      "date": "2026-06-29",
+      "quantity": 75,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0607": {
+      "productId": "toothpaste",
+      "date": "2026-07-06",
+      "quantity": 81,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0608": {
+      "productId": "toothpaste",
+      "date": "2026-07-13",
+      "quantity": 54,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0609": {
+      "productId": "toothpaste",
+      "date": "2026-07-20",
+      "quantity": 104,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0610": {
+      "productId": "toothpaste",
+      "date": "2026-07-27",
+      "quantity": 126,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0611": {
+      "productId": "toothpaste",
+      "date": "2026-08-03",
+      "quantity": 67,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0612": {
+      "productId": "toothpaste",
+      "date": "2026-08-10",
+      "quantity": 134,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0613": {
+      "productId": "toothpaste",
+      "date": "2026-08-17",
+      "quantity": 107,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0614": {
+      "productId": "toothpaste",
+      "date": "2026-08-24",
+      "quantity": 137,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0615": {
+      "productId": "toothpaste",
+      "date": "2026-08-31",
+      "quantity": 110,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0616": {
+      "productId": "toothpaste",
+      "date": "2026-09-07",
+      "quantity": 125,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0617": {
+      "productId": "toothpaste",
+      "date": "2026-09-14",
+      "quantity": 82,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0618": {
+      "productId": "toothpaste",
+      "date": "2026-09-21",
+      "quantity": 131,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0619": {
+      "productId": "toothpaste",
+      "date": "2026-09-28",
+      "quantity": 99,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0620": {
+      "productId": "toothpaste",
+      "date": "2026-10-05",
+      "quantity": 124,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0621": {
+      "productId": "toothpaste",
+      "date": "2026-10-12",
+      "quantity": 92,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0622": {
+      "productId": "toothpaste",
+      "date": "2026-10-19",
+      "quantity": 69,
+      "unit": "tube",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0623": {
+      "productId": "sanitary_pads",
+      "date": "2025-10-27",
+      "quantity": 95,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0624": {
+      "productId": "sanitary_pads",
+      "date": "2025-11-03",
+      "quantity": 47,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0625": {
+      "productId": "sanitary_pads",
+      "date": "2025-11-10",
+      "quantity": 35,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0626": {
+      "productId": "sanitary_pads",
+      "date": "2025-11-17",
+      "quantity": 110,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0627": {
+      "productId": "sanitary_pads",
+      "date": "2025-11-24",
+      "quantity": 73,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0628": {
+      "productId": "sanitary_pads",
+      "date": "2025-12-01",
+      "quantity": 94,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0629": {
+      "productId": "sanitary_pads",
+      "date": "2025-12-08",
+      "quantity": 64,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0630": {
+      "productId": "sanitary_pads",
+      "date": "2025-12-15",
+      "quantity": 98,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0631": {
+      "productId": "sanitary_pads",
+      "date": "2025-12-22",
+      "quantity": 53,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0632": {
+      "productId": "sanitary_pads",
+      "date": "2025-12-29",
+      "quantity": 106,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0633": {
+      "productId": "sanitary_pads",
+      "date": "2026-01-05",
+      "quantity": 85,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0634": {
+      "productId": "sanitary_pads",
+      "date": "2026-01-12",
+      "quantity": 46,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0635": {
+      "productId": "sanitary_pads",
+      "date": "2026-01-19",
+      "quantity": 52,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0636": {
+      "productId": "sanitary_pads",
+      "date": "2026-01-26",
+      "quantity": 118,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0637": {
+      "productId": "sanitary_pads",
+      "date": "2026-02-02",
+      "quantity": 92,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0638": {
+      "productId": "sanitary_pads",
+      "date": "2026-02-09",
+      "quantity": 102,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0639": {
+      "productId": "sanitary_pads",
+      "date": "2026-02-16",
+      "quantity": 67,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0640": {
+      "productId": "sanitary_pads",
+      "date": "2026-02-23",
+      "quantity": 123,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0641": {
+      "productId": "sanitary_pads",
+      "date": "2026-03-02",
+      "quantity": 99,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0642": {
+      "productId": "sanitary_pads",
+      "date": "2026-03-09",
+      "quantity": 96,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0643": {
+      "productId": "sanitary_pads",
+      "date": "2026-03-16",
+      "quantity": 66,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0644": {
+      "productId": "sanitary_pads",
+      "date": "2026-03-23",
+      "quantity": 114,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0645": {
+      "productId": "sanitary_pads",
+      "date": "2026-03-30",
+      "quantity": 83,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0646": {
+      "productId": "sanitary_pads",
+      "date": "2026-04-06",
+      "quantity": 91,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0647": {
+      "productId": "sanitary_pads",
+      "date": "2026-04-13",
+      "quantity": 41,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0648": {
+      "productId": "sanitary_pads",
+      "date": "2026-04-20",
+      "quantity": 30,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0649": {
+      "productId": "sanitary_pads",
+      "date": "2026-04-27",
+      "quantity": 92,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0650": {
+      "productId": "sanitary_pads",
+      "date": "2026-05-04",
+      "quantity": 104,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0651": {
+      "productId": "sanitary_pads",
+      "date": "2026-05-11",
+      "quantity": 32,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0652": {
+      "productId": "sanitary_pads",
+      "date": "2026-05-18",
+      "quantity": 102,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0653": {
+      "productId": "sanitary_pads",
+      "date": "2026-05-25",
+      "quantity": 71,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0654": {
+      "productId": "sanitary_pads",
+      "date": "2026-06-01",
+      "quantity": 115,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0655": {
+      "productId": "sanitary_pads",
+      "date": "2026-06-08",
+      "quantity": 74,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0656": {
+      "productId": "sanitary_pads",
+      "date": "2026-06-15",
+      "quantity": 114,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0657": {
+      "productId": "sanitary_pads",
+      "date": "2026-06-22",
+      "quantity": 87,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0658": {
+      "productId": "sanitary_pads",
+      "date": "2026-06-29",
+      "quantity": 54,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0659": {
+      "productId": "sanitary_pads",
+      "date": "2026-07-06",
+      "quantity": 82,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0660": {
+      "productId": "sanitary_pads",
+      "date": "2026-07-13",
+      "quantity": 49,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0661": {
+      "productId": "sanitary_pads",
+      "date": "2026-07-20",
+      "quantity": 72,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0662": {
+      "productId": "sanitary_pads",
+      "date": "2026-07-27",
+      "quantity": 29,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0663": {
+      "productId": "sanitary_pads",
+      "date": "2026-08-03",
+      "quantity": 26,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0664": {
+      "productId": "sanitary_pads",
+      "date": "2026-08-10",
+      "quantity": 95,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0665": {
+      "productId": "sanitary_pads",
+      "date": "2026-08-17",
+      "quantity": 36,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0666": {
+      "productId": "sanitary_pads",
+      "date": "2026-08-24",
+      "quantity": 110,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0667": {
+      "productId": "sanitary_pads",
+      "date": "2026-08-31",
+      "quantity": 85,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0668": {
+      "productId": "sanitary_pads",
+      "date": "2026-09-07",
+      "quantity": 27,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0669": {
+      "productId": "sanitary_pads",
+      "date": "2026-09-14",
+      "quantity": 61,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0670": {
+      "productId": "sanitary_pads",
+      "date": "2026-09-21",
+      "quantity": 105,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0671": {
+      "productId": "sanitary_pads",
+      "date": "2026-09-28",
+      "quantity": 75,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0672": {
+      "productId": "sanitary_pads",
+      "date": "2026-10-05",
+      "quantity": 103,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0673": {
+      "productId": "sanitary_pads",
+      "date": "2026-10-12",
+      "quantity": 86,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0674": {
+      "productId": "sanitary_pads",
+      "date": "2026-10-19",
+      "quantity": 118,
+      "unit": "pack",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0675": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-10-27",
+      "quantity": 34,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0676": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-11-03",
+      "quantity": 22,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0677": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-11-10",
+      "quantity": 10,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0678": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-11-17",
+      "quantity": 37,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0679": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-11-24",
+      "quantity": 20,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0680": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-12-01",
+      "quantity": 28,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0681": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-12-08",
+      "quantity": 27,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0682": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-12-15",
+      "quantity": 47,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0683": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-12-22",
+      "quantity": 31,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0684": {
+      "productId": "gf_pasta_500g",
+      "date": "2025-12-29",
+      "quantity": 38,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0685": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-01-05",
+      "quantity": 19,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0686": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-01-12",
+      "quantity": 43,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0687": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-01-19",
+      "quantity": 34,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0688": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-01-26",
+      "quantity": 29,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0689": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-02-02",
+      "quantity": 18,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0690": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-02-09",
+      "quantity": 36,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0691": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-02-16",
+      "quantity": 25,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0692": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-02-23",
+      "quantity": 37,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0693": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-03-02",
+      "quantity": 14,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0694": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-03-09",
+      "quantity": 2,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0695": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-03-16",
+      "quantity": 26,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0696": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-03-23",
+      "quantity": 40,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0697": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-03-30",
+      "quantity": 27,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0698": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-04-06",
+      "quantity": 43,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0699": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-04-13",
+      "quantity": 32,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0700": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-04-20",
+      "quantity": 16,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0701": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-04-27",
+      "quantity": 17,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0702": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-05-04",
+      "quantity": 2,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0703": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-05-11",
+      "quantity": 30,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0704": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-05-18",
+      "quantity": 43,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0705": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-05-25",
+      "quantity": 35,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0706": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-06-01",
+      "quantity": 28,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0707": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-06-08",
+      "quantity": 19,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0708": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-06-15",
+      "quantity": 9,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0709": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-06-22",
+      "quantity": 20,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0710": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-06-29",
+      "quantity": 20,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0711": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-07-06",
+      "quantity": 9,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0712": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-07-13",
+      "quantity": 1,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0713": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-07-20",
+      "quantity": 32,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0714": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-07-27",
+      "quantity": 33,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0715": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-08-03",
+      "quantity": 25,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0716": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-08-10",
+      "quantity": 36,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0717": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-08-17",
+      "quantity": 29,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0718": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-08-24",
+      "quantity": 33,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0719": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-08-31",
+      "quantity": 20,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0720": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-09-07",
+      "quantity": 14,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0721": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-09-14",
+      "quantity": 38,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0722": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-09-21",
+      "quantity": 40,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0723": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-09-28",
+      "quantity": 27,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0724": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-10-05",
+      "quantity": 46,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0725": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-10-12",
+      "quantity": 33,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0726": {
+      "productId": "gf_pasta_500g",
+      "date": "2026-10-19",
+      "quantity": 42,
+      "unit": "packet",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0727": {
+      "productId": "lactose_free_milk",
+      "date": "2025-10-27",
+      "quantity": 61,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0728": {
+      "productId": "lactose_free_milk",
+      "date": "2025-11-03",
+      "quantity": 42,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0729": {
+      "productId": "lactose_free_milk",
+      "date": "2025-11-10",
+      "quantity": 28,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0730": {
+      "productId": "lactose_free_milk",
+      "date": "2025-11-17",
+      "quantity": 58,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0731": {
+      "productId": "lactose_free_milk",
+      "date": "2025-11-24",
+      "quantity": 44,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0732": {
+      "productId": "lactose_free_milk",
+      "date": "2025-12-01",
+      "quantity": 66,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0733": {
+      "productId": "lactose_free_milk",
+      "date": "2025-12-08",
+      "quantity": 46,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0734": {
+      "productId": "lactose_free_milk",
+      "date": "2025-12-15",
+      "quantity": 72,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0735": {
+      "productId": "lactose_free_milk",
+      "date": "2025-12-22",
+      "quantity": 45,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0736": {
+      "productId": "lactose_free_milk",
+      "date": "2025-12-29",
+      "quantity": 75,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0737": {
+      "productId": "lactose_free_milk",
+      "date": "2026-01-05",
+      "quantity": 61,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0738": {
+      "productId": "lactose_free_milk",
+      "date": "2026-01-12",
+      "quantity": 68,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0739": {
+      "productId": "lactose_free_milk",
+      "date": "2026-01-19",
+      "quantity": 54,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0740": {
+      "productId": "lactose_free_milk",
+      "date": "2026-01-26",
+      "quantity": 47,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0741": {
+      "productId": "lactose_free_milk",
+      "date": "2026-02-02",
+      "quantity": 28,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0742": {
+      "productId": "lactose_free_milk",
+      "date": "2026-02-09",
+      "quantity": 70,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0743": {
+      "productId": "lactose_free_milk",
+      "date": "2026-02-16",
+      "quantity": 60,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0744": {
+      "productId": "lactose_free_milk",
+      "date": "2026-02-23",
+      "quantity": 77,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0745": {
+      "productId": "lactose_free_milk",
+      "date": "2026-03-02",
+      "quantity": 62,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0746": {
+      "productId": "lactose_free_milk",
+      "date": "2026-03-09",
+      "quantity": 82,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0747": {
+      "productId": "lactose_free_milk",
+      "date": "2026-03-16",
+      "quantity": 75,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0748": {
+      "productId": "lactose_free_milk",
+      "date": "2026-03-23",
+      "quantity": 70,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0749": {
+      "productId": "lactose_free_milk",
+      "date": "2026-03-30",
+      "quantity": 65,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0750": {
+      "productId": "lactose_free_milk",
+      "date": "2026-04-06",
+      "quantity": 76,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0751": {
+      "productId": "lactose_free_milk",
+      "date": "2026-04-13",
+      "quantity": 56,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0752": {
+      "productId": "lactose_free_milk",
+      "date": "2026-04-20",
+      "quantity": 57,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0753": {
+      "productId": "lactose_free_milk",
+      "date": "2026-04-27",
+      "quantity": 37,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0754": {
+      "productId": "lactose_free_milk",
+      "date": "2026-05-04",
+      "quantity": 67,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0755": {
+      "productId": "lactose_free_milk",
+      "date": "2026-05-11",
+      "quantity": 52,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0756": {
+      "productId": "lactose_free_milk",
+      "date": "2026-05-18",
+      "quantity": 63,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0757": {
+      "productId": "lactose_free_milk",
+      "date": "2026-05-25",
+      "quantity": 46,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0758": {
+      "productId": "lactose_free_milk",
+      "date": "2026-06-01",
+      "quantity": 72,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0759": {
+      "productId": "lactose_free_milk",
+      "date": "2026-06-08",
+      "quantity": 50,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0760": {
+      "productId": "lactose_free_milk",
+      "date": "2026-06-15",
+      "quantity": 64,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0761": {
+      "productId": "lactose_free_milk",
+      "date": "2026-06-22",
+      "quantity": 53,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0762": {
+      "productId": "lactose_free_milk",
+      "date": "2026-06-29",
+      "quantity": 61,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0763": {
+      "productId": "lactose_free_milk",
+      "date": "2026-07-06",
+      "quantity": 16,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0764": {
+      "productId": "lactose_free_milk",
+      "date": "2026-07-13",
+      "quantity": 68,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0765": {
+      "productId": "lactose_free_milk",
+      "date": "2026-07-20",
+      "quantity": 52,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0766": {
+      "productId": "lactose_free_milk",
+      "date": "2026-07-27",
+      "quantity": 62,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0767": {
+      "productId": "lactose_free_milk",
+      "date": "2026-08-03",
+      "quantity": 52,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0768": {
+      "productId": "lactose_free_milk",
+      "date": "2026-08-10",
+      "quantity": 48,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0769": {
+      "productId": "lactose_free_milk",
+      "date": "2026-08-17",
+      "quantity": 25,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0770": {
+      "productId": "lactose_free_milk",
+      "date": "2026-08-24",
+      "quantity": 14,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0771": {
+      "productId": "lactose_free_milk",
+      "date": "2026-08-31",
+      "quantity": 57,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0772": {
+      "productId": "lactose_free_milk",
+      "date": "2026-09-07",
+      "quantity": 71,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0773": {
+      "productId": "lactose_free_milk",
+      "date": "2026-09-14",
+      "quantity": 29,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0774": {
+      "productId": "lactose_free_milk",
+      "date": "2026-09-21",
+      "quantity": 68,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0775": {
+      "productId": "lactose_free_milk",
+      "date": "2026-09-28",
+      "quantity": 49,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0776": {
+      "productId": "lactose_free_milk",
+      "date": "2026-10-05",
+      "quantity": 36,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0777": {
+      "productId": "lactose_free_milk",
+      "date": "2026-10-12",
+      "quantity": 21,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    },
+    "record_0778": {
+      "productId": "lactose_free_milk",
+      "date": "2026-10-19",
+      "quantity": 2,
+      "unit": "carton",
+      "note": null,
+      "source": "sample_dataset"
+    }
+  },
+  "inventory": {
+    "batch_001": {
+      "productId": "pasta_500g",
+      "quantity": 91,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-12-01",
+      "expiryType": "best_before"
+    },
+    "batch_002": {
+      "productId": "pasta_500g",
+      "quantity": 212,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-09-30",
+      "expiryType": "best_before"
+    },
+    "batch_003": {
+      "productId": "rice_1kg",
+      "quantity": 189,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-11-30",
+      "expiryType": "best_before"
+    },
+    "batch_004": {
+      "productId": "oats_1kg",
+      "quantity": 75,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-02-28",
+      "expiryType": "best_before"
+    },
+    "batch_005": {
+      "productId": "oats_1kg",
+      "quantity": 75,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-06-30",
+      "expiryType": "best_before"
+    },
+    "batch_006": {
+      "productId": "peas_tin",
+      "quantity": 212,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2028-03-31",
+      "expiryType": "best_before"
+    },
+    "batch_007": {
+      "productId": "sweetcorn_tin",
+      "quantity": 68,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-01-31",
+      "expiryType": "best_before"
+    },
+    "batch_008": {
+      "productId": "sweetcorn_tin",
+      "quantity": 101,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2028-05-31",
+      "expiryType": "best_before"
+    },
+    "batch_009": {
+      "productId": "baked_beans_tin",
+      "quantity": 189,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-11-06",
+      "expiryType": "best_before"
+    },
+    "batch_010": {
+      "productId": "baked_beans_tin",
+      "quantity": 230,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-08-14",
+      "expiryType": "best_before"
+    },
+    "batch_011": {
+      "productId": "tuna_tin",
+      "quantity": 197,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2029-01-31",
+      "expiryType": "best_before"
+    },
+    "batch_012": {
+      "productId": "apples_bag",
+      "quantity": 29,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-10-27",
+      "expiryType": "best_before"
+    },
+    "batch_013": {
+      "productId": "apples_bag",
+      "quantity": 19,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-10-31",
+      "expiryType": "best_before"
+    },
+    "batch_014": {
+      "productId": "potatoes_2kg",
+      "quantity": 53,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-11-02",
+      "expiryType": "best_before"
+    },
+    "batch_015": {
+      "productId": "infant_formula",
+      "quantity": 0,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": null,
+      "expiryType": null
+    },
+    "batch_016": {
+      "productId": "baby_food_jar",
+      "quantity": 49,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-11-15",
+      "expiryType": "best_before"
+    },
+    "batch_017": {
+      "productId": "baby_food_jar",
+      "quantity": 49,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-04-30",
+      "expiryType": "best_before"
+    },
+    "batch_018": {
+      "productId": "toothpaste",
+      "quantity": 69,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": null,
+      "expiryType": null
+    },
+    "batch_019": {
+      "productId": "sanitary_pads",
+      "quantity": 118,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": null,
+      "expiryType": null
+    },
+    "batch_020": {
+      "productId": "gf_pasta_500g",
+      "quantity": 42,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2027-03-31",
+      "expiryType": "best_before"
+    },
+    "batch_021": {
+      "productId": "lactose_free_milk",
+      "quantity": 2,
+      "snapshotDate": "2026-10-19",
+      "expiryDate": "2026-12-20",
+      "expiryType": "best_before"
+    }
+  },
+  "staging": {
+    "sourceFile": "sample_stock_history.csv",
+    "extractedAt": null,
+    "columnMapping": {},
+    "records": {},
+    "warnings": {}
+  }
+}

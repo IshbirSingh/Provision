@@ -1,0 +1,6 @@
+<% if (errors && errors.length) { %>
+<div class="notice notice--error" role="alert">
+  <p><strong>Check the following:</strong></p>
+  <ul><% for (const e of errors) { %><li><%= e %></li><% } %></ul>
+</div>
+<% } %>
