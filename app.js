@@ -115,12 +115,6 @@ app.get('/', (req, res) => {
   });
 });
 
-app.post('/reset', async (req, res) => {
-  await req.store.resetDemoData();
-  req.session.flash = { type: 'success', message: 'Workspace reset to the sample dataset.' };
-  res.redirect('/');
-});
-
 app.use('/', require('./routes/upload'));
 app.use('/', require('./routes/parameters'));
 app.use('/', require('./routes/scenarios'));

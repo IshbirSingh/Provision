@@ -133,14 +133,13 @@
 
     <div class="context-item">
       <h3>Your area</h3>
-      <p class="tag tag--muted">For your judgement only</p>
+      <p class="tag tag--done">Built into your demand figures</p>
       <% if (ok(loc)) { %>
         <p><%= loc.district %>, <%= loc.region || loc.country %>.<% if (ok(ctx.deprivation)) { %> Deprivation decile <strong><%= ctx.deprivation.imdDecile %> of 10</strong> (1 = most deprived in England, IMD 2025).<% } %></p>
       <% } else { %><p class="hint">Location unavailable.</p><% } %>
       <% const bank = ctx.holidays?.bank; if (ok(bank)) { %>
         <p><%= bank.inHorizon.length ? 'Bank holidays: ' + bank.inHorizon.map((b) => `${b.title} (${fmtDate(b.date)})`).join(', ') + '. Benefits due then are usually paid early.' : 'No bank holidays in this horizon.' %></p>
       <% } %>
-      <p class="hint">These don't change any figures.</p>
     </div>
   </div>
   <form method="post" action="/parameters/context" class="inline-form" data-busy="Refreshing…">
@@ -192,7 +191,8 @@
 </section>
 
 <section class="section" id="details">
-  <h2>How each estimate was made</h2>
+  <details class="section-toggle">
+  <summary><h2 class="summary-heading">How each estimate was made</h2></summary>
   <% for (const r of rows) { const a = r.analysis; if (!a.observations) continue; const o = a.observations; const dm = a.demand; const adj = a.adjustment || {}; const sup = a.supply || {}; const ex = a.expiry || {}; const t = a.trend || {};
        const warnings = (a.flags || []).filter((f) => f.level === 'warning'); %>
   <details class="detail" id="detail-<%= r.id %>">
@@ -206,8 +206,9 @@
       <div class="detail__chart" data-chart="stock" data-series="<%= JSON.stringify(a.chart) %>" data-unit="<%= r.product.unit || 'unit' %>"></div>
 
       <ul class="plain-facts">
-        <% if (dm.available) { %>
-        <li>About <strong><%= fmt(dm.weeklyMean, 0) %> a week</strong>, based on <%= dm.intervalsUsed %> weeks when stock went down.</li>
+        <% if (dm.available) { const skipped = o.byType.rise + o.byType.censored + o.byType.excluded; %>
+        <li><strong>About <%= fmt(dm.weeklyMean, 0) %> a week.</strong> Across <%= o.counts %> stock counts, stock went down in <%= dm.intervalsUsed %> weeks; we added up how much it dropped and divided by the number of days.<%= skipped ? ` ${skipped} other weeks were left out because a delivery arrived, stock ran out, or a note explained the drop, so they don't show true use.` : '' %></li>
+        <li><strong>Usually between <%= fmt(dm.weeklyCi95?.[0], 0) %> and <%= fmt(dm.weeklyCi95?.[1], 0) %> a week.</strong> Some weeks are busier than others by about <%= fmt(dm.weeklySd, 0) %>, so the plans keep enough stock for busier weeks, not just an average one.</li>
         <% } else { %>
         <li>Not enough weeks when stock went down to estimate demand. Enter a weekly figure above.</li>
         <% } %>
@@ -229,5 +230,6 @@
     </div>
   </details>
   <% } %>
+  </details>
 </section>
 <%- include('partials/foot') %>

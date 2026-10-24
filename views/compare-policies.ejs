@@ -125,10 +125,6 @@
 <section class="section">
   <h2>Assumptions behind these results</h2>
   <ul class="plain-list"><% for (const a of sim.assumptions) { %><li class="note"><%= a %></li><% } %></ul>
-  <p class="hint">
-    Checks: stock never negative <%= sim.checks.inventoryNonNegative ? 'passed' : 'FAILED' %>; stock balances (start + deliveries − served − waste = end) <%= sim.checks.inventoryBalances ? 'passed' : 'FAILED' %>; same demand and delivery outcomes for every policy (demand checksum <%= sim.checks.demandChecksum %>).
-    Calculation <%= sim.calculationVersion %>, run <%= new Date(sim.ranAt).toLocaleString('en-GB') %> in <%= sim.runtimeMs %> ms. Methods: <%= Object.values(sim.methods).join(', ') %>.
-  </p>
 </section>
 
 <script type="application/json" id="compare-data"><%- JSON.stringify({

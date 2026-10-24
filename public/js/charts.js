@@ -152,7 +152,12 @@ if (compareEl) compareCharts(JSON.parse(compareEl.textContent));
 // Open a product's details when its link is followed.
 function openTarget() {
   const target = document.getElementById(location.hash.slice(1));
-  if (target && target.tagName === 'DETAILS') target.open = true;
+  if (!target) return;
+  // Open the target and any dropdowns it sits inside.
+  for (let el = target; el; el = el.parentElement?.closest('details')) {
+    if (el.tagName === 'DETAILS') el.open = true;
+  }
+  target.scrollIntoView();
 }
 window.addEventListener('hashchange', openTarget);
 openTarget();

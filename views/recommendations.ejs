@@ -170,14 +170,6 @@
                   <li>Across <%= record.calculation.runs.toLocaleString('en-GB') %> simulated futures it runs out in <strong><%= pc(r.shortageRisk) %></strong><%= r.shortageBeforeFirstDelivery > 0.05 ? `, mostly before the first delivery can arrive (${pc(r.shortageBeforeFirstDelivery)})` : '' %>.<%= r.expectedWaste ? ` About ${n1(r.expectedWaste)} is likely to go out of date.` : '' %></li>
                 </ul>
                 <div class="why__chart" data-chart="projection" data-series="<%= JSON.stringify(record.projected[r.productId] || null) %>" data-unit="<%= r.unit || 'unit' %>"></div>
-                <table class="table table--compact why__compare">
-                  <thead><tr><th>Plan</th><th class="num">Request</th><th class="num">Chance of running out</th><th class="num">Expected waste</th></tr></thead>
-                  <tbody>
-                    <% for (const [key, label, pol] of columns) { const o = pol.products[r.productId]; %>
-                    <tr class="<%= isChosen(key) ? 'is-selected' : '' %>"><td><%= label %><%= isChosen(key) ? ' (yours)' : '' %></td><td class="num"><%= o.initialOrder %></td><td class="num"><%= pc(o.shortageProbability) %></td><td class="num"><%- o.expectedWaste === null ? insufficient : n1(o.expectedWaste) %></td></tr>
-                    <% } %>
-                  </tbody>
-                </table>
               </div>
             </details>
           </td>

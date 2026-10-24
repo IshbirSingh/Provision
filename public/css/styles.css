@@ -357,3 +357,4 @@ details > summary { cursor: pointer; list-style-position: outside; }
 .plain-facts li { margin-bottom: 6px; }
 .schedule-table td.schedule-today { font-weight: 700; }
 .space-use { display: block; }
+.section-toggle > summary { margin-bottom: 8px; }
