@@ -1,7 +1,7 @@
 <%- include('partials/head', { title, hideSteps: true }) %>
 <div class="medium">
   <h1>Organisation</h1>
-  <p class="lead">Changing the planning horizon, storage or budget marks existing parameters and results as out of date.</p>
+  <p class="lead">Changing the planning horizon or storage marks existing parameters and results as out of date.</p>
   <%- include('partials/errors', { errors }) %>
   <form method="post" action="/account" class="form">
     <%- include('partials/organisation-fields', { org: form || organisation }) %>

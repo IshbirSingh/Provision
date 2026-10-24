@@ -1,11 +1,7 @@
 <%- include('partials/head', { title }) %>
-<div class="<%= orgExists ? 'narrow' : 'medium' %>">
+<div class="medium">
   <h1>Create account</h1>
-  <% if (orgExists) { %>
-    <p>You'll join the <strong><%= organisation.name %></strong> workspace.</p>
-  <% } else { %>
-    <p>Set up your food bank. You can change any of this later.</p>
-  <% } %>
+  <p>Each account has its own private workspace: its own food bank details, stock records, parameters and plans. You can change any of this later.</p>
   <%- include('partials/errors', { errors }) %>
   <form method="post" action="/signup" class="form">
     <fieldset class="fieldset">
@@ -24,9 +20,7 @@
         <input id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
       </div>
     </fieldset>
-    <% if (!orgExists) { %>
-      <%- include('partials/organisation-fields', { org: form }) %>
-    <% } %>
+    <%- include('partials/organisation-fields', { org: form }) %>
     <button type="submit" class="button">Create account</button>
   </form>
   <p>Already have an account? <a href="/login">Sign in</a>.</p>

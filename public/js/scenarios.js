@@ -16,10 +16,11 @@ function describeReserve(days) {
   if (!el) return;
   const raised = preview.filter((p) => p.from !== null && days >= p.from).map((p) => p.name);
   const lowest = preview.filter((p) => p.from !== null).sort((a, b) => a.from - b.from)[0];
+  const n = (x) => `${x} day${x === 1 ? '' : 's'}`;
   if (raised.length) {
-    el.textContent = `At ${days} days this raises the Balanced target for ${raised.length} of ${preview.length} products: ${raised.slice(0, 5).join(', ')}${raised.length > 5 ? '…' : ''}.`;
+    el.textContent = `A ${n(days)} reserve means keeping more of ${raised.length} of ${preview.length} products: ${raised.slice(0, 4).join(', ')}${raised.length > 4 ? ' and others' : ''}.`;
   } else if (lowest) {
-    el.textContent = `At ${days} days this changes no Balanced target: each already covers more. It starts to apply from ${lowest.from} days (${lowest.name}). Approximate preview without other adjustments.`;
+    el.textContent = `A ${n(days)} reserve won't change anything: Balanced already keeps more than ${n(days)} of stock for every product. A reserve starts to make a difference from ${n(lowest.from)} (${lowest.name} first).`;
   }
 }
 

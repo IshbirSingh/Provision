@@ -156,6 +156,7 @@ def _simulate_policy(T, ctx):
         "cap_short": cap_short / max(1, K),
         "cap_events": cap_events / max(1, K),
         "daily": daily,
+        "orders": pend,
         "util": util,
         "groups": ctx["groups"],
         "checks": {"inventoryNonNegative": min_stock >= 0, "inventoryBalances": balance_ok},
@@ -171,14 +172,14 @@ def run(payload):
     ids = list(products)
     N, M, H = len(ids), cfg["numberOfRuns"], cfg["planningHorizonDays"]
     R = int(g["reviewPeriodDays"])
-    p_success = float(g["deliverySuccessProbability"])
+    p_success = float(g.get("deliverySuccessProbability", 1.0))
     if N == 0:
         raise ValueError("No products to simulate")
 
     states = scenario_model.apply(products, cfg)
     priorities = {pid: products[pid]["priority"] for pid in ids}
     rank = [PRIORITY_RANK[priorities[pid]] for pid in ids]
-    targets = policies.targets(states, ids, priorities, R, g["quantiles"])
+    targets = policies.targets(states, ids, priorities, R, H, payload.get("policyLevels"))
     notes = []
 
     # Order days and actual arrival days (every policy faces the real delay).
@@ -207,17 +208,14 @@ def run(payload):
             if a < H:
                 arrivals_by_day.setdefault(a, []).append((i, k))
 
-    # Capacity groups: category limits from Step 2, if known.
-    caps = g.get("categoryCapacity") or {}
+    # Capacity per product, derived in Step 2 from storage space (capacity.py).
+    caps = g.get("productCapacity") or {}
     groups = []
     group_cats = []
-    for cat, cap in caps.items():
-        if cap is None:
-            continue
-        idx = [i for i, pid in enumerate(ids) if products[pid]["category"] == cat]
-        if idx:
-            groups.append((int(cap), idx))
-            group_cats.append(cat)
+    for i, pid in enumerate(ids):
+        if caps.get(pid) is not None:
+            groups.append((int(caps[pid]), [i]))
+            group_cats.append(pid)
 
     # Common random numbers: separate seeded streams, generated once.
     demand_seq, delivery_seq = np.random.SeedSequence(cfg["randomSeed"]).spawn(2)
@@ -248,7 +246,7 @@ def run(payload):
         T = targets[policy]["target"]
         sim = _simulate_policy(T, ctx)
         raw[policy] = sim
-        results[policy] = _summarise(policy, sim, T, targets[policy], ids, products, states, has_expiry, protected, demand_totals, H, group_cats, g, payload.get("budget"))
+        results[policy] = _summarise(policy, sim, T, targets[policy], ids, products, states, has_expiry, protected, demand_totals, H, group_cats, g, order_days)
 
     unmet_by_policy = {p: raw[p]["unmet"].sum(axis=1) for p in raw}
     checks = {
@@ -288,6 +286,9 @@ def run(payload):
                 "reserveUnits": s["reserveUnits"],
                 "currentStock": int(products[pid]["currentStock"]),
                 "expectedDemandHorizon": metrics.r(s["mu"] * H, 1),
+                "expectedDemandBeforeFirstDelivery": metrics.r(s["mu"] * s["leadTimeDisrupted"], 1),
+                "weeklyCv": metrics.r(float(np.sqrt(demand_model.daily_variance(s["mu"], s["alpha"]) * 7)) / (7 * s["mu"]), 3) if s["mu"] > 0 else None,
+                "capacity": None if caps.get(pid) is None else int(caps[pid]),
                 "hasExpiryData": has_expiry[i],
             }
             for i, (pid, s) in enumerate((pid, states[pid]) for pid in ids)
@@ -295,13 +296,32 @@ def run(payload):
         "policies": results,
         "distribution": {"unmetTotal": metrics.histogram(unmet_by_policy)},
         "policyDescriptions": policies.DESCRIPTIONS,
+        "policyLevels": {p: targets[p]["level"] for p in cfg["policyIds"]},
         "assumptions": _assumptions(cfg, g, states, ids, products) + notes,
         "checks": checks,
         "runtimeMs": round((time.perf_counter() - started) * 1000),
     }
 
 
-def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected, demand_totals, H, group_cats, g, budget):
+def _space_use(daily, ids, storage):
+    """Peak share of each storage type's space in use, on an average day.
+    storage: {"capacityLitres": {type: litres}, "products": {pid: {"type", "volumeL"}}}."""
+    if not storage:
+        return None
+    out = {}
+    for stype, litres in (storage.get("capacityLitres") or {}).items():
+        if not litres:
+            continue
+        cols = [i for i, pid in enumerate(ids) if (storage["products"].get(pid) or {}).get("type") == stype]
+        if not cols:
+            continue
+        vol = np.array([storage["products"][ids[i]]["volumeL"] for i in cols], dtype=float)
+        used = (daily[:, :, cols] * vol).sum(axis=2)  # (H, M) litres
+        out[stype] = {"peak": metrics.r(float(used.mean(axis=1).max()) / litres, 3), "capacityLitres": litres}
+    return out or None
+
+
+def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected, demand_totals, H, group_cats, g, order_days):
     M = sim["unmet"].shape[0]
     unmet_total = sim["unmet"].sum(axis=1)
     short_any = sim["unmet"] > 0
@@ -311,17 +331,13 @@ def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected,
         raise RuntimeError("Day-0 orders differ between runs; they must be deterministic")
     init = init[0]
     daily = sim["daily"]
+    orders = sim["orders"]  # (M, N, K)
 
     prods = {}
-    cost_known = []
     for i, pid in enumerate(ids):
-        p = products[pid]
         s = states[pid]
         runs_short = first[:, i] >= 0
         expected_h = s["mu"] * int(tg["horizon"][i])
-        unit_cost = p.get("unitCost")
-        if unit_cost is not None:
-            cost_known.append(i)
         first_arrival = s["leadTimeDisrupted"]  # earliest any order can arrive
         prods[pid] = {
             "shortageBeforeFirstDelivery": metrics.r(((first[:, i] >= 0) & (first[:, i] < first_arrival)).mean(), 4),
@@ -343,7 +359,12 @@ def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected,
             "simulatedDemandMean": metrics.r(demand_totals[:, i].mean(), 1),
             "capacityShortfallPerOrder": metrics.r(sim["cap_short"][i], 2),
             "capacityLimitedShare": metrics.r(sim["cap_events"][i], 3),
-            "initialOrderCost": metrics.r(init[i] * unit_cost, 2) if unit_cost is not None else None,
+            "riskTarget": tg["riskTarget"][products[pid]["priority"]],
+            # Typical order on each order day (expected; re-check before ordering).
+            "schedule": [
+                {"day": int(t), "mean": metrics.r(float(orders[:, i, k].mean()), 1), "orderedShare": metrics.r(float((orders[:, i, k] > 0).mean()), 3)}
+                for k, t in enumerate(order_days)
+            ],
             "daily": {
                 "mean": [metrics.r(x, 1) for x in daily[:, :, i].mean(axis=1)],
                 "p10": [int(x) for x in np.quantile(daily[:, :, i], 0.10, axis=1)],
@@ -358,30 +379,15 @@ def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected,
         by_priority[level] = metrics.r(short_any[:, cols].any(axis=1).mean(), 4) if cols else None
 
     waste_cols = [i for i in range(len(ids)) if has_expiry[i]]
-    cost_total = None
-    if cost_known:
-        cost_total = metrics.r(sum(init[i] * products[ids[i]]["unitCost"] for i in cost_known), 2)
     utilisation = {}
-    for gi, name in enumerate(group_cats):
+    for gi, pid in enumerate(group_cats):
         series = np.stack(sim["util"][gi])
-        utilisation[name] = {"capacity": sim["groups"][gi][0], "average": metrics.r(series.mean(), 3), "max": metrics.r(series.max(), 3)}
+        utilisation[pid] = {"capacity": sim["groups"][gi][0], "average": metrics.r(series.mean(), 3), "max": metrics.r(series.max(), 3)}
 
     warnings = []
     for i, pid in enumerate(ids):
         if sim["cap_short"][i] > 0 and products[pid]["priority"] in ("critical", "essential"):
-            warnings.append(f"Storage capacity stops this policy reaching its target for {products[pid]['name']} (about {sim['cap_short'][i]:.0f} units short per order). The target is not fully achievable.")
-    budget_check = None
-    if budget and budget.get("amount") and cost_total is not None:
-        period_days = {"week": 7, "month": 30.44, "year": 365.25}.get(budget.get("period"), 30.44)
-        horizon_budget = budget["amount"] * H / period_days
-        budget_check = {
-            "horizonBudget": metrics.r(horizon_budget, 2),
-            "initialOrderCost": cost_total,
-            "withinBudget": cost_total <= horizon_budget,
-            "coverage": "all" if len(cost_known) == len(ids) else "partial",
-        }
-        if cost_total > horizon_budget:
-            warnings.append(f"The request-now cost (£{cost_total:,.2f}) is above the budget for this horizon (£{horizon_budget:,.2f}).")
+            warnings.append(f"Storage space stops this policy reaching its target for {products[pid]['name']} (about {sim['cap_short'][i]:.0f} units short per order).")
 
     return {
         "totals": {
@@ -397,10 +403,10 @@ def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected,
             "serviceLevel": metrics.r(metrics.service_level(unmet_total, demand_totals.sum(axis=1)), 4),
             "expectedWaste": metrics.r(sim["waste"][:, waste_cols].sum(axis=1).mean(), 2) if waste_cols else None,
             "expectedEnding": metrics.r(sim["ending"].sum(axis=1).mean(), 1),
-            "initialOrderCost": cost_total,
-            "costCoverage": "none" if not cost_known else "all" if len(cost_known) == len(ids) else "partial",
-            "budget": budget_check,
             "utilisation": utilisation or None,
+            "capacityLimitedProducts": [pid for i, pid in enumerate(ids) if sim["cap_events"][i] > 0],
+            "spaceUse": _space_use(daily, ids, g.get("storage")),
+            "riskTargets": tg["riskTarget"],
             "dailyStock": [metrics.r(x, 1) for x in sim["daily"].sum(axis=2).mean(axis=1)],
         },
         "products": prods,
@@ -417,7 +423,7 @@ def preview(payload):
     ids = list(products)
     states = scenario_model.apply(products, cfg)
     priorities = {pid: products[pid]["priority"] for pid in ids}
-    tg = policies.targets(states, ids, priorities, int(g["reviewPeriodDays"]), g["quantiles"])
+    tg = policies.targets(states, ids, priorities, int(g["reviewPeriodDays"]), cfg["planningHorizonDays"])
     return {
         pid: {
             "name": products[pid]["name"],
@@ -439,12 +445,12 @@ def _assumptions(cfg, g, states, ids, products):
         f"{cfg['numberOfRuns']:,} simulated futures over {cfg['planningHorizonDays']} days, random seed {cfg['randomSeed']}. All three policies face the same demand and delivery outcomes.",
         "Demand is inferred consumption from stock counts (Step 2), not confirmed demand. Unmet demand while stock was at zero is not in the history.",
         f"Orders can be placed every {g['reviewPeriodDays']} days, starting today. The day-0 order is the quantity to request now.",
-        f"Each delivery arrives with probability {g['deliverySuccessProbability']:.0%} (hypothetical assumption, not measured). A failed delivery is lost, not retried.",
         "Stock is issued first-expiry-first-out. Stock past its best-before date is counted as waste.",
+        "Every delivery is assumed to arrive in full unless the scenario says otherwise.",
         "Lean and Balanced plan on the approved lead time. Resilient also plans for any extra delivery delay in the scenario. Actual deliveries are delayed for every policy.",
     ]
     if cfg["demandIncrease"] > 0:
-        out.append(f"Demand is {cfg['demandIncrease']:.0%} higher than the approved forecast (hypothetical). Seasonal adjustments approved in Step 2 are already in the forecast and are not applied again.")
+        out.append(f"Demand is {cfg['demandIncrease']:.0%} higher than the approved forecast (hypothetical). Holiday and weather adjustments from Step 2 are already in the forecast and are not applied again.")
     if cfg["additionalDeliveryDelayDays"] > 0:
         out.append(f"Every delivery arrives {cfg['additionalDeliveryDelayDays']} day(s) later than the approved lead time (hypothetical).")
     if cfg["deliveryQuantityReduction"] > 0:
@@ -459,6 +465,6 @@ def _assumptions(cfg, g, states, ids, products):
         out.append(f"Orders for {', '.join(late[:5])}{'…' if len(late) > 5 else ''} can't arrive within the {H}-day horizon.")
     if any(states[p]["leadTimeClamped"] for p in ids):
         out.append("Lead times of 0 days are treated as next-day delivery.")
-    if not any(v is not None for v in (g.get("categoryCapacity") or {}).values()):
-        out.append("No storage capacity was given, so no storage limit is applied.")
+    if not any(v is not None for v in (g.get("productCapacity") or {}).values()):
+        out.append("No storage capacity is known, so no storage limit is applied.")
     return out

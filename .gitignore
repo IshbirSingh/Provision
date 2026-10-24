@@ -5,3 +5,4 @@ __pycache__/
 data/data.json
 data/*.tmp
 data/*.corrupt-*.json
+data/data.v1-backup-*.json

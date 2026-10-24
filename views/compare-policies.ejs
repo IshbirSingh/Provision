@@ -4,7 +4,6 @@
   const pol = sim.policies;
   const n0 = (x) => x === null || x === undefined ? null : Math.round(x).toLocaleString('en-GB');
   const pc = (x) => x === null || x === undefined ? null : `${Math.round(x * 100)}%`;
-  const gbp = (x) => x === null || x === undefined ? null : `£${x.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const diff = (x, base, fmt = (v) => Math.round(v).toLocaleString('en-GB'), scale = 1) => {
     if (x === null || x === undefined || base === null || base === undefined) return '';
     const d = (x - base) * scale;
@@ -14,17 +13,13 @@
   const insufficient = '<span class="insufficient">Insufficient data</span>';
   const rowsDef = [
     ['Request now', 'Units to order today (the day-0 order)', (t) => n0(t.initialOrder), (t) => t.initialOrder],
-    ['Average ordered over the horizon', 'Mean of all orders placed across the simulated futures', (t) => n0(t.averageOrdered), (t) => t.averageOrdered],
-    ['Expected unmet demand', 'Units requested when the shelf was empty, averaged over futures', (t) => n0(t.expectedUnmet), (t) => t.expectedUnmet],
-    ['Worst 5% of futures (CVaR)', 'Average unmet demand in the worst 5% of futures', (t) => n0(t.unmetCvar95), (t) => t.unmetCvar95],
-    ['Chance any critical or essential item runs short', 'Share of futures with at least one shortage of a critical or essential product', (t) => pc(t.protectedShortageProbability), null],
-    ['Critical and essential products short', 'Expected number of those products with a shortage', (t) => t.expectedProtectedProductsShort === null ? null : `${t.expectedProtectedProductsShort.toFixed(1)} of ${t.protectedProducts}`, (t) => t.expectedProtectedProductsShort],
-    ['Demand met', 'Share of simulated demand that was served', (t) => pc(t.serviceLevel), null],
+    ['Expected shortfall', 'Units people needed when the shelf was empty, on average', (t) => n0(t.expectedUnmet), (t) => t.expectedUnmet],
+    ['Shortfall in a bad month', 'Average shortfall in the worst 5% of futures', (t) => n0(t.unmetCvar95), (t) => t.unmetCvar95],
+    ['Chance any critical or essential item runs short', 'Share of futures where at least one of them runs out', (t) => pc(t.protectedShortageProbability), null],
+    ['Critical and essential products short', 'How many of them are expected to run out at least once', (t) => t.expectedProtectedProductsShort === null ? null : `${t.expectedProtectedProductsShort.toFixed(1)} of ${t.protectedProducts}`, (t) => t.expectedProtectedProductsShort],
     ['Expected waste', 'Units passing their best-before date before use', (t) => n0(t.expectedWaste), (t) => t.expectedWaste],
     ['Expected stock at the end', 'Units on the shelf at the end of the horizon', (t) => n0(t.expectedEnding), (t) => t.expectedEnding],
-    ['Estimated cost of today\'s request', 'Only where unit costs were entered in Step 2', (t) => t.costCoverage === 'none' ? null : gbp(t.initialOrderCost) + (t.costCoverage === 'partial' ? ' (some products have no cost)' : ''), (t) => t.initialOrderCost],
   ];
-  const hasUtil = P.some((p) => pol[p].totals.utilisation);
   const productIds = Object.keys(sim.inputs).sort((a, b) => {
     const rank = { critical: 0, essential: 1, standard: 2 };
     return rank[products[a].priority] - rank[products[b].priority] || pol.balanced.products[b].shortageProbability - pol.balanced.products[a].shortageProbability;
@@ -62,16 +57,8 @@
           <% } %>
         </tr>
         <% } %>
-        <% if (hasUtil) { %>
         <tr>
-          <th scope="row">Highest storage use<span class="hint">Peak share of the capacity you entered</span></th>
-          <% for (const p of P) { const u = pol[p].totals.utilisation || {}; %>
-          <td class="num<%= selected === p ? ' is-selected' : '' %> small"><%= Object.entries(u).map(([c, x]) => `${c.replace(/_/g, ' ')}: ${Math.round(x.max * 100)}%`).join('; ') %></td>
-          <% } %>
-        </tr>
-        <% } %>
-        <tr>
-          <th scope="row">Constraints</th>
+          <th scope="row">Limits</th>
           <% for (const p of P) { const w = pol[p].warnings; %>
           <td class="<%= selected === p ? 'is-selected' : '' %> small"><%- w.length ? w.map((x) => `<span class="issue issue--warning">${x.replace(/</g, '&lt;')}</span>`).join('') : 'None reported' %></td>
           <% } %>

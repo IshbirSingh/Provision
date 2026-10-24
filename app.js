@@ -21,6 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/vendor/plotly.min.js', (req, res) => {
   res.sendFile(require.resolve('plotly.js-dist-min/plotly.min.js'));
 });
+app.use('/vendor/katex', express.static(path.join(path.dirname(require.resolve('katex/package.json')), 'dist')));
 
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(express.json({ limit: '2mb' }));
@@ -29,7 +30,7 @@ if (!process.env.SESSION_SECRET) {
   console.warn('[app] SESSION_SECRET is not set; sessions will reset when the server restarts.');
 }
 app.use(session({
-  name: 'supplyshield.sid',
+  name: 'provision.sid',
   secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
@@ -39,12 +40,21 @@ app.use(session({
 app.locals.engine = { status: 'checking', detail: null };
 app.locals.nebius = { status: 'checking', detail: null };
 
-// Load the workspace once per request and expose what every page needs.
+// Load the signed-in account's own workspace once per request. `req.store`
+// is the only way routes read or write data, and it is scoped to that
+// account, so one account can never see or change another's workspace.
 app.use(async (req, res, next) => {
-  const data = await storage.loadData();
-  const user = req.session.userId ? data.users[req.session.userId] : null;
+  const root = await storage.loadRoot();
+  const user = req.session.userId ? root.users[req.session.userId] : null;
   if (req.session.userId && !user) delete req.session.userId;
 
+  let data = storage.defaultWorkspace();
+  if (user) {
+    req.store = storage.forUser(req.session.userId);
+    data = root.workspaces[req.session.userId] || (await req.store.loadData());
+  }
+
+  res.locals.hasAccounts = Object.keys(root.users).length > 0;
   res.locals.data = data;
   res.locals.user = user ? { id: req.session.userId, name: user.name, email: user.email } : null;
   res.locals.organisation = data.organisation;
@@ -65,8 +75,16 @@ app.use(authRouter);
 // Everything below requires a signed-in user. With no accounts yet, send
 // visitors to sign up rather than sign in.
 app.use((req, res, next) => {
-  if (!res.locals.user && Object.keys(res.locals.data.users).length === 0) return res.redirect('/signup');
+  if (!res.locals.user && !res.locals.hasAccounts) return res.redirect('/signup');
   return requireAuth(req, res, next);
+});
+
+// An account whose workspace has no organisation yet (for example one
+// created before workspaces were separate) sets it up first.
+app.use((req, res, next) => {
+  if (res.locals.organisation?.name) return next();
+  req.session.flash = { type: 'info', message: 'Set up your food bank to start your own workspace.' };
+  return res.redirect('/account');
 });
 
 app.get('/', (req, res) => {
@@ -98,7 +116,7 @@ app.get('/', (req, res) => {
 });
 
 app.post('/reset', async (req, res) => {
-  await storage.resetDemoData();
+  await req.store.resetDemoData();
   req.session.flash = { type: 'success', message: 'Workspace reset to the sample dataset.' };
   res.redirect('/');
 });
@@ -138,9 +156,9 @@ async function checkNebius() {
 
 if (require.main === module) {
   const port = Number(process.env.PORT) || 3000;
-  storage.loadData()
+  storage.loadRoot()
     .then(() => {
-      app.listen(port, () => console.log(`SupplyShield running at http://localhost:${port}`));
+      app.listen(port, () => console.log(`Provision running at http://localhost:${port}`));
       return Promise.all([checkEngine(), checkNebius()]);
     })
     .catch((err) => {

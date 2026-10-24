@@ -1,4 +1,4 @@
-"""SupplyShield quantitative engine entry point.
+"""Provision quantitative engine entry point.
 
 Reads {"task": ..., "payload": {...}} as JSON from stdin and writes
 {"ok": true, "result": ...} or {"ok": false, "error": ...} to stdout.
@@ -14,6 +14,7 @@ import pandas as pd
 import scipy
 
 import analysis
+import capacity
 import simulation
 
 
@@ -31,6 +32,7 @@ TASKS = {
     "analyse": analysis.run,
     "simulate": simulation.run,
     "preview": simulation.preview,
+    "capacity": capacity.run,
 }
 
 

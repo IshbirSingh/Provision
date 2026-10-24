@@ -7,7 +7,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "standard",
-      "unitCost": null,
       "rawNames": [
         "Apples (bag)",
         "apples (bag)"
@@ -22,7 +21,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "critical",
-      "unitCost": null,
       "rawNames": [
         "Baby Food Jars",
         "baby food jars"
@@ -37,7 +35,6 @@
       "packSize": 415,
       "packSizeUnit": "g",
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Baked Beans 415g",
         "baked beans 415g",
@@ -53,7 +50,6 @@
       "packSize": 500,
       "packSizeUnit": "g",
       "priority": "critical",
-      "unitCost": null,
       "rawNames": [
         "Gluten Free Pasta 500g",
         "gluten free pasta 500g"
@@ -68,7 +64,6 @@
       "packSize": 800,
       "packSizeUnit": "g",
       "priority": "critical",
-      "unitCost": null,
       "rawNames": [
         "Infant Formula 800g",
         "infant formula 800g"
@@ -83,7 +78,6 @@
       "packSize": 1,
       "packSizeUnit": "L",
       "priority": "critical",
-      "unitCost": null,
       "rawNames": [
         "Lactose Free Milk UHT 1L",
         "lactose free milk uht 1l"
@@ -98,7 +92,6 @@
       "packSize": 500,
       "packSizeUnit": "g",
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Pasta 500g",
         "pasta 500g",
@@ -114,7 +107,6 @@
       "packSize": 1,
       "packSizeUnit": "kg",
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Porridge Oats 1kg",
         "porridge oats 1kg"
@@ -129,7 +121,6 @@
       "packSize": 2.5,
       "packSizeUnit": "kg",
       "priority": "standard",
-      "unitCost": null,
       "rawNames": [
         "Potatoes 2.5kg",
         "potatoes 2.5kg"
@@ -144,7 +135,6 @@
       "packSize": 1,
       "packSizeUnit": "kg",
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Rice 1kg",
         "rice 1kg"
@@ -159,7 +149,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Sanitary Pads",
         "sanitary pads"
@@ -174,7 +163,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Tinned Peas",
         "tinned peas"
@@ -189,7 +177,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Tinned Sweetcorn",
         "tinned sweetcorn"
@@ -204,7 +191,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Tinned Tuna",
         "tinned tuna"
@@ -219,7 +205,6 @@
       "packSize": null,
       "packSizeUnit": null,
       "priority": "essential",
-      "unitCost": null,
       "rawNames": [
         "Toothpaste",
         "toothpaste"

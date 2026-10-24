@@ -25,7 +25,7 @@
 
 <fieldset class="fieldset">
   <legend>Storage</legend>
-  <p class="hint">Add each storage area in whatever unit you track it in. Leave capacity blank if you don't know it; SupplyShield won't invent a limit.</p>
+  <p class="hint">Add each storage area in whatever unit you track it in. Leave capacity blank if you don't know it; Provision won't invent a limit.</p>
   <div class="table-scroll">
     <table class="table table--form" id="storage-table">
       <thead>
@@ -55,33 +55,9 @@
   </div>
   <button type="button" class="button button--secondary" data-add-row="storage-table">Add storage area</button>
 
-  <div class="field">
+  <div class="field" style = "margin-top: 30px;">
     <label for="storageNotes">Anything else about your storage (optional)</label>
     <span class="hint">For example "two chest freezers, about half full most weeks" or "back room holds roughly 60 crates".</span>
     <textarea id="storageNotes" name="storageNotes" rows="3"><%= org.storageNotes || '' %></textarea>
-  </div>
-</fieldset>
-
-<fieldset class="fieldset">
-  <legend>Other resources (optional)</legend>
-  <div class="field-row">
-    <div class="field">
-      <label for="budgetAmount">Purchasing budget (£)</label>
-      <input id="budgetAmount" name="budgetAmount" type="number" min="0" step="any" class="input--short" value="<%= org.budget?.amount ?? org.budgetAmount ?? '' %>">
-    </div>
-    <div class="field">
-      <label for="budgetPeriod">Per</label>
-      <select id="budgetPeriod" name="budgetPeriod">
-        <% for (const p of ['week', 'month', 'year']) { %><option value="<%= p %>"<%= (org.budget?.period || org.budgetPeriod || 'month') === p ? ' selected' : '' %>><%= p %></option><% } %>
-      </select>
-    </div>
-    <div class="field">
-      <label for="vehicles">Vehicles</label>
-      <input id="vehicles" name="vehicles" type="number" min="0" step="1" class="input--short" value="<%= org.vehicles ?? '' %>">
-    </div>
-    <div class="field">
-      <label for="deliverySlotsPerWeek">Delivery slots per week</label>
-      <input id="deliverySlotsPerWeek" name="deliverySlotsPerWeek" type="number" min="0" step="1" class="input--short" value="<%= org.deliverySlotsPerWeek ?? '' %>">
-    </div>
   </div>
 </fieldset>

@@ -1,41 +1,54 @@
 // Single source of truth: data/data.json.
-// All persistent writes go through the queue below so concurrent requests
-// cannot overwrite each other. Files are replaced atomically (tmp + rename).
+//
+// The file holds every account and, under `workspaces`, one fully separate
+// workspace per account (organisation, stock data, parameters, results and
+// audit records). Routes only ever see the signed-in account's workspace,
+// through forUser(userId).
+//
+// All persistent writes go through one queue so concurrent requests cannot
+// overwrite each other. Files are replaced atomically (tmp + rename).
 
 const fs = require('fs/promises');
 const fsSync = require('fs');
 const path = require('path');
 
-const SCHEMA_VERSION = '1.0';
-const DATA_FILE = process.env.SUPPLYSHIELD_DATA_FILE || path.join(__dirname, '..', 'data', 'data.json');
+const SCHEMA_VERSION = '2.0';
+const DATA_FILE = process.env.PROVISION_DATA_FILE || path.join(__dirname, '..', 'data', 'data.json');
 const DATA_DIR = path.dirname(DATA_FILE);
 const SEED_FILE = path.join(__dirname, '..', 'data', 'sample', 'seed.json');
 
-// Sections that hold workflow state (cleared by a reset). `users` and
-// `organisation` are account data and survive a reset.
+// Workspace sections that hold workflow state (cleared by a reset). The
+// organisation profile survives a reset.
 const WORKFLOW_SECTIONS = [
   'products', 'inventory', 'historicalStock', 'staging', 'analysis', 'externalContext',
   'parameters', 'scenario', 'simulation', 'recommendations', 'audit',
 ];
 
-function defaultData() {
+function defaultRoot() {
   return {
     metadata: {
       schemaVersion: SCHEMA_VERSION,
-      project: 'SupplyShield',
-      currentStep: 1,
+      project: 'Provision',
       updatedAt: null,
     },
     users: {},
+    workspaces: {},
+  };
+}
+
+// One account's workspace.
+function defaultWorkspace() {
+  return {
+    metadata: {
+      currentStep: 1,
+      createdAt: null,
+    },
     organisation: {
       name: null,
       postcode: null,
       planningHorizonDays: 28,
       storage: {},
       storageNotes: null,
-      budget: { amount: null, currency: 'GBP', period: null },
-      vehicles: null,
-      deliverySlotsPerWeek: null,
       createdAt: null,
     },
     products: {},
@@ -111,38 +124,52 @@ function fillMissing(target, defaults) {
   return target;
 }
 
-function validateStructure(data) {
+function validateWorkspace(ws, label = 'workspace') {
   const errors = [];
-  if (!isPlainObject(data)) return ['Root must be an object'];
-
-  for (const section of Object.keys(defaultData())) {
-    if (!isPlainObject(data[section])) errors.push(`Section "${section}" must be an object`);
+  if (!isPlainObject(ws)) return [`${label} must be an object`];
+  for (const section of Object.keys(defaultWorkspace())) {
+    if (!isPlainObject(ws[section])) errors.push(`${label}: section "${section}" must be an object`);
   }
   if (errors.length) return errors;
 
-  if (data.metadata.schemaVersion !== SCHEMA_VERSION) {
-    errors.push(`Unsupported schemaVersion "${data.metadata.schemaVersion}"`);
+  if (!Number.isInteger(ws.audit.inputVersion) || ws.audit.inputVersion < 1) {
+    errors.push(`${label}: audit.inputVersion must be a positive integer`);
   }
-  if (!Number.isInteger(data.audit.inputVersion) || data.audit.inputVersion < 1) {
-    errors.push('audit.inputVersion must be a positive integer');
-  }
-  if (typeof data.parameters.approved !== 'boolean') errors.push('parameters.approved must be boolean');
-  if (typeof data.recommendations.finalised !== 'boolean') errors.push('recommendations.finalised must be boolean');
+  if (typeof ws.parameters.approved !== 'boolean') errors.push(`${label}: parameters.approved must be boolean`);
+  if (typeof ws.recommendations.finalised !== 'boolean') errors.push(`${label}: recommendations.finalised must be boolean`);
 
-  for (const key of ['products', 'inventory', 'historicalStock', 'users']) {
-    for (const [id, entity] of Object.entries(data[key])) {
-      if (!isPlainObject(entity)) errors.push(`${key}.${id} must be an object`);
+  for (const key of ['products', 'inventory', 'historicalStock']) {
+    for (const [id, entity] of Object.entries(ws[key])) {
+      if (!isPlainObject(entity)) errors.push(`${label}: ${key}.${id} must be an object`);
     }
   }
-  for (const [id, rec] of Object.entries(data.historicalStock)) {
-    if (rec.productId && !(rec.productId in data.products)) {
-      errors.push(`historicalStock.${id} references unknown product "${rec.productId}"`);
+  for (const [id, rec] of Object.entries(ws.historicalStock)) {
+    if (rec.productId && !(rec.productId in ws.products)) {
+      errors.push(`${label}: historicalStock.${id} references unknown product "${rec.productId}"`);
     }
   }
-  for (const [id, batch] of Object.entries(data.inventory)) {
-    if (batch.productId && !(batch.productId in data.products)) {
-      errors.push(`inventory.${id} references unknown product "${batch.productId}"`);
+  for (const [id, batch] of Object.entries(ws.inventory)) {
+    if (batch.productId && !(batch.productId in ws.products)) {
+      errors.push(`${label}: inventory.${id} references unknown product "${batch.productId}"`);
     }
+  }
+  return errors;
+}
+
+function validateStructure(root) {
+  if (!isPlainObject(root)) return ['Root must be an object'];
+  const errors = [];
+  for (const section of ['metadata', 'users', 'workspaces']) {
+    if (!isPlainObject(root[section])) errors.push(`Section "${section}" must be an object`);
+  }
+  if (errors.length) return errors;
+  if (root.metadata.schemaVersion !== SCHEMA_VERSION) errors.push(`Unsupported schemaVersion "${root.metadata.schemaVersion}"`);
+  for (const [id, user] of Object.entries(root.users)) {
+    if (!isPlainObject(user)) errors.push(`users.${id} must be an object`);
+  }
+  for (const [id, ws] of Object.entries(root.workspaces)) {
+    if (!(id in root.users)) errors.push(`workspaces.${id} has no matching account`);
+    errors.push(...validateWorkspace(ws, `workspaces.${id}`));
   }
   return errors;
 }
@@ -154,20 +181,45 @@ class StorageValidationError extends Error {
   }
 }
 
-async function writeAtomic(data) {
-  data.metadata.updatedAt = new Date().toISOString();
-  const errors = validateStructure(data);
+// --- Migration --------------------------------------------------------------
+
+// Schema 1.0 kept one shared workspace at the top level. The earliest
+// account keeps that data; every other account gets an empty workspace.
+function migrate(old) {
+  if (old?.metadata?.schemaVersion === SCHEMA_VERSION) return { root: old, migrated: false };
+  const root = defaultRoot();
+  root.users = isPlainObject(old?.users) ? old.users : {};
+  const owners = Object.entries(root.users).sort(([, a], [, b]) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  owners.forEach(([id, user], i) => {
+    const ws = defaultWorkspace();
+    ws.metadata.createdAt = user.createdAt || new Date().toISOString();
+    if (i === 0) {
+      for (const section of [...WORKFLOW_SECTIONS, 'organisation']) {
+        if (isPlainObject(old[section])) ws[section] = old[section];
+      }
+      ws.metadata.currentStep = old.metadata?.currentStep || 1;
+    }
+    root.workspaces[id] = fillMissing(ws, defaultWorkspace());
+  });
+  return { root, migrated: true };
+}
+
+// --- File access ----------------------------------------------------------------
+
+async function writeAtomic(root) {
+  root.metadata.updatedAt = new Date().toISOString();
+  const errors = validateStructure(root);
   if (errors.length) throw new StorageValidationError(errors);
 
   await fs.mkdir(DATA_DIR, { recursive: true });
   const tmp = path.join(DATA_DIR, `.data.${process.pid}.${Date.now()}.tmp`);
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf8');
+  await fs.writeFile(tmp, JSON.stringify(root, null, 2), 'utf8');
 
   // Windows can briefly lock the target (antivirus, editors); retry the rename.
   for (let attempt = 0; ; attempt++) {
     try {
       await fs.rename(tmp, DATA_FILE);
-      return data;
+      return root;
     } catch (err) {
       if (attempt >= 5 || !['EPERM', 'EBUSY', 'EACCES'].includes(err.code)) {
         await fs.rm(tmp, { force: true });
@@ -194,54 +246,81 @@ async function readFromDisk() {
     return null;
   }
 
+  let parsed;
   try {
-    return JSON.parse(raw);
+    parsed = JSON.parse(raw);
   } catch {
     // Keep the unreadable file rather than discarding it, then start fresh.
     const backup = path.join(DATA_DIR, `data.corrupt-${Date.now()}.json`);
     await fs.copyFile(DATA_FILE, backup);
     console.error(`[storage] data.json could not be parsed. Backed up to ${backup}`);
-    const fresh = defaultData();
-    fresh.audit.warnings.storage_recovered = {
-      message: `data.json was unreadable and was reset. The original was kept at ${path.basename(backup)}.`,
-      at: new Date().toISOString(),
-    };
-    return fresh;
+    const fresh = defaultRoot();
+    fresh.metadata.recoveredFrom = path.basename(backup);
+    return markForWrite(fresh);
   }
+
+  const { root, migrated } = migrate(parsed);
+  if (migrated) {
+    const backup = path.join(DATA_DIR, `data.v1-backup-${Date.now()}.json`);
+    await fs.copyFile(DATA_FILE, backup);
+    console.log(`[storage] Migrated data.json to separate workspaces per account. The previous file was kept as ${path.basename(backup)}.`);
+    markForWrite(root);
+  }
+  fillMissing(root, defaultRoot());
+  for (const ws of Object.values(root.workspaces)) {
+    fillMissing(ws, defaultWorkspace());
+    // Fields that are no longer collected. Removed here; the change is saved
+    // with the account's next write.
+    for (const key of RETIRED_ORGANISATION_FIELDS) delete ws.organisation[key];
+  }
+  return root;
 }
 
-async function loadData() {
-  const existing = await readFromDisk();
-  if (existing === null) return enqueue(() => writeAtomic(defaultData()));
+const RETIRED_ORGANISATION_FIELDS = ['budget', 'vehicles', 'deliverySlotsPerWeek'];
 
-  fillMissing(existing, defaultData());
-  const errors = validateStructure(existing);
+// Not saved to the file: marks a migrated or recovered document that must be
+// written straight away so the migration isn't repeated.
+const NEEDS_WRITE = Symbol('needsWrite');
+function markForWrite(root) {
+  root[NEEDS_WRITE] = true;
+  return root;
+}
+
+async function loadRoot() {
+  const root = await readFromDisk();
+  if (root === null) return enqueue(() => writeAtomic(defaultRoot()));
+  if (root[NEEDS_WRITE]) return enqueue(() => writeAtomic(root));
+  const errors = validateStructure(root);
   if (errors.length) throw new StorageValidationError(errors);
-  return existing;
+  return root;
 }
 
-function saveData(data) {
-  return enqueue(() => writeAtomic(structuredClone(data)));
-}
-
-// Load, apply `fn` to a draft, validate and write - all inside the queue.
-// `fn` may be async; its return value is passed back to the caller.
-function mutate(fn) {
+// Load, apply `fn` to the whole document, validate and write - in the queue.
+function mutateRoot(fn) {
   return enqueue(async () => {
-    const draft = (await readFromDisk()) ?? defaultData();
-    fillMissing(draft, defaultData());
-    const result = await fn(draft);
-    await writeAtomic(draft);
-    return result === undefined ? draft : result;
+    const root = (await readFromDisk()) ?? defaultRoot();
+    const result = await fn(root);
+    await writeAtomic(root);
+    return result === undefined ? root : result;
   });
 }
 
-function updateSection(sectionName, value) {
-  if (!(sectionName in defaultData())) throw new Error(`Unknown section "${sectionName}"`);
-  return mutate((data) => {
-    data[sectionName] = value;
+// --- Accounts -----------------------------------------------------------------
+
+function createAccount(userId, user, organisation) {
+  return mutateRoot((root) => {
+    if (Object.values(root.users).some((u) => u.email === user.email)) {
+      throw Object.assign(new Error('An account with this email already exists.'), { code: 'EMAIL_TAKEN' });
+    }
+    root.users[userId] = user;
+    const ws = defaultWorkspace();
+    ws.metadata.createdAt = user.createdAt;
+    Object.assign(ws.organisation, organisation, { createdAt: user.createdAt });
+    root.workspaces[userId] = ws;
   });
 }
+
+// --- Workspace-scoped store -------------------------------------------------
 
 function toPathParts(p) {
   const parts = Array.isArray(p) ? p : String(p).split('.');
@@ -251,129 +330,172 @@ function toPathParts(p) {
   return parts;
 }
 
-function updateNestedValue(p, value) {
-  const parts = toPathParts(p);
-  return mutate((data) => {
-    let node = data;
-    for (const key of parts.slice(0, -1)) {
-      if (!isPlainObject(node[key])) node[key] = {};
-      node = node[key];
-    }
-    node[parts.at(-1)] = value;
-  });
-}
-
 function getNestedValue(data, p) {
   return toPathParts(p).reduce((node, key) => (node == null ? undefined : node[key]), data);
+}
+
+// The storage API for one account. Every function only reads or writes that
+// account's workspace; nothing here can reach another account's data.
+function forUser(userId) {
+  if (typeof userId !== 'string' || !userId) throw new Error('A signed-in account is required');
+
+  const workspaceOf = (root) => {
+    if (!(userId in root.users)) throw Object.assign(new Error('Account not found'), { status: 401 });
+    root.workspaces[userId] ??= defaultWorkspace();
+    return root.workspaces[userId];
+  };
+
+  async function loadData() {
+    const root = await loadRoot();
+    if (!(userId in root.users)) return null;
+    if (!root.workspaces[userId]) {
+      // An account without a workspace (e.g. after a manual edit) gets a fresh one.
+      return mutate(() => {});
+    }
+    return root.workspaces[userId];
+  }
+
+  function mutate(fn) {
+    return mutateRoot(async (root) => {
+      const ws = workspaceOf(root);
+      const result = await fn(ws);
+      return result === undefined ? ws : result;
+    });
+  }
+
+  function saveData(ws) {
+    return mutate((current) => {
+      for (const key of Object.keys(current)) delete current[key];
+      Object.assign(current, structuredClone(ws));
+    });
+  }
+
+  function updateSection(sectionName, value) {
+    if (!(sectionName in defaultWorkspace())) throw new Error(`Unknown section "${sectionName}"`);
+    return mutate((ws) => {
+      ws[sectionName] = value;
+    });
+  }
+
+  function updateNestedValue(p, value) {
+    const parts = toPathParts(p);
+    return mutate((ws) => {
+      let node = ws;
+      for (const key of parts.slice(0, -1)) {
+        if (!isPlainObject(node[key])) node[key] = {};
+        node = node[key];
+      }
+      node[parts.at(-1)] = value;
+    });
+  }
+
+  function invalidate(change) {
+    return mutate((ws) => {
+      applyInvalidation(ws, change);
+    });
+  }
+
+  // Reset this account's workspace to the preloaded sample dataset. The
+  // organisation profile and finalised records are kept, and the input
+  // version keeps increasing.
+  function resetDemoData() {
+    return mutate(async (ws) => {
+      const fresh = defaultWorkspace();
+      let seed = {};
+      if (fsSync.existsSync(SEED_FILE)) seed = JSON.parse(await fs.readFile(SEED_FILE, 'utf8'));
+      const keptRecords = ws.audit.records || {};
+      const keptCache = ws.staging.aiCache || {};
+      const version = (ws.audit.inputVersion || 0) + 1;
+
+      for (const section of WORKFLOW_SECTIONS) {
+        ws[section] = section in seed ? structuredClone(seed[section]) : fresh[section];
+      }
+      fillMissing(ws, fresh);
+
+      const seedDatasets = Object.values(seed.audit?.datasets || {});
+      ws.audit.datasets = {};
+      if (seedDatasets.length) {
+        ws.audit.datasets[`dataset_v${version}`] = { ...seedDatasets[0], version, approvedAt: new Date().toISOString() };
+      }
+      ws.audit.inputVersion = version;
+      ws.audit.records = keptRecords;
+      ws.staging.aiCache = keptCache;
+      ws.metadata.currentStep = Object.keys(ws.historicalStock).length ? 2 : 1;
+    });
+  }
+
+  return { userId, loadData, saveData, mutate, updateSection, updateNestedValue, invalidate, resetDemoData };
 }
 
 // --- Invalidation (spec 13.5) -------------------------------------------
 // Finalised recommendation records in audit.records are immutable and are
 // never cleared here.
 
-function clearSimulation(data) {
-  const { seed, runs } = data.simulation;
-  data.simulation = { seed, runs, policies: {} };
-  data.audit.calculationVersion = null;
+function clearSimulation(ws) {
+  const { seed, runs } = ws.simulation;
+  ws.simulation = { seed, runs, policies: {} };
+  ws.audit.calculationVersion = null;
 }
 
-function clearRecommendations(data) {
-  data.recommendations = defaultData().recommendations;
+function clearRecommendations(ws) {
+  ws.recommendations = defaultWorkspace().recommendations;
 }
 
 const INVALIDATION_RULES = {
   // Historical stock or inventory -> analysis, parameters, simulations, recommendations
-  historical(data) {
-    data.analysis = defaultData().analysis;
-    data.parameters = defaultData().parameters;
-    clearSimulation(data);
-    clearRecommendations(data);
-    data.audit.inputVersion += 1;
+  historical(ws) {
+    ws.analysis = defaultWorkspace().analysis;
+    ws.parameters = defaultWorkspace().parameters;
+    clearSimulation(ws);
+    clearRecommendations(ws);
+    ws.audit.inputVersion += 1;
   },
   // Product category or priority -> parameters, simulations, recommendations
-  products(data) {
-    data.parameters.approved = false;
-    clearSimulation(data);
-    clearRecommendations(data);
-    data.audit.inputVersion += 1;
+  products(ws) {
+    ws.parameters.approved = false;
+    clearSimulation(ws);
+    clearRecommendations(ws);
+    ws.audit.inputVersion += 1;
   },
   // External context or planning assumptions -> parameters, simulations, recommendations
-  context(data) {
-    data.parameters.approved = false;
-    clearSimulation(data);
-    clearRecommendations(data);
-    data.audit.inputVersion += 1;
+  context(ws) {
+    ws.parameters.approved = false;
+    clearSimulation(ws);
+    clearRecommendations(ws);
+    ws.audit.inputVersion += 1;
   },
   // Scenario settings -> simulations, recommendations
-  scenario(data) {
-    clearSimulation(data);
-    clearRecommendations(data);
+  scenario(ws) {
+    clearSimulation(ws);
+    clearRecommendations(ws);
   },
   // Selected policy -> final recommendation and explanation
-  policy(data) {
-    data.recommendations.products = {};
-    data.recommendations.explanations = {};
-    data.recommendations.finalised = false;
+  policy(ws) {
+    ws.recommendations.products = {};
+    ws.recommendations.explanations = {};
+    ws.recommendations.finalised = false;
   },
 };
 
-function applyInvalidation(data, change) {
+function applyInvalidation(ws, change) {
   const rule = INVALIDATION_RULES[change];
   if (!rule) throw new Error(`Unknown invalidation "${change}"`);
-  rule(data);
-  return data;
-}
-
-function invalidate(change) {
-  return mutate((data) => {
-    applyInvalidation(data, change);
-  });
-}
-
-// Reset the workspace to the preloaded sample dataset (or empty defaults if
-// no seed exists yet). Accounts, the organisation profile and finalised
-// recommendation records are kept, and the input version keeps increasing.
-function resetDemoData() {
-  return mutate(async (data) => {
-    const fresh = defaultData();
-    let seed = {};
-    if (fsSync.existsSync(SEED_FILE)) {
-      seed = JSON.parse(await fs.readFile(SEED_FILE, 'utf8'));
-    }
-    const keptRecords = data.audit.records || {};
-    const keptCache = data.staging.aiCache || {};
-    const version = (data.audit.inputVersion || 0) + 1;
-
-    for (const section of WORKFLOW_SECTIONS) {
-      data[section] = section in seed ? structuredClone(seed[section]) : fresh[section];
-    }
-    fillMissing(data, fresh);
-
-    const seedDatasets = Object.values(seed.audit?.datasets || {});
-    data.audit.datasets = {};
-    if (seedDatasets.length) {
-      data.audit.datasets[`dataset_v${version}`] = { ...seedDatasets[0], version, approvedAt: new Date().toISOString() };
-    }
-    data.audit.inputVersion = version;
-    data.audit.records = keptRecords;
-    data.staging.aiCache = keptCache;
-    data.metadata.currentStep = Object.keys(data.historicalStock).length ? 2 : 1;
-  });
+  rule(ws);
+  return ws;
 }
 
 module.exports = {
   SCHEMA_VERSION,
   DATA_FILE,
-  defaultData,
+  defaultRoot,
+  defaultWorkspace,
   validateStructure,
+  validateWorkspace,
   StorageValidationError,
-  loadData,
-  saveData,
-  mutate,
-  updateSection,
-  updateNestedValue,
+  loadRoot,
+  mutateRoot,
+  createAccount,
+  forUser,
   getNestedValue,
   applyInvalidation,
-  invalidate,
-  resetDemoData,
 };

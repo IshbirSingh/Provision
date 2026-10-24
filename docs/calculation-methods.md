@@ -37,25 +37,44 @@ With equal 7-day intervals this is mean(weekly) ÷ 7 and var(weekly) ÷ 7. The 9
 
 **`mom_negbin_alpha_v1`.** Poisson if v̂ ≤ μ̂. Otherwise negative binomial with α̂ = (v̂ − μ̂) ÷ μ̂², so Var(D) = μ + αμ².
 
-**`holiday_term_rate_ratio_welch_v1`.** Daily consumption rates in intervals that are at least half in school holidays are compared with term-time rates using Welch's t-test. If p < 0.10, the suggested seasonal adjustment for the planning horizon is:
+**`wls_holiday_temperature_v1`.** One model per product, fitted to its own records, estimates the effect of school holidays and temperature together, so neither is counted twice. Each interval's daily consumption rate is regressed, weighted by interval length, on:
 
-(term rate × (1 − f) + holiday rate × f) ÷ μ̂, where f is the share of the horizon in a holiday.
+- the share of the interval in a school holiday (fixed calendar of typical England dates)
+- the average daily temperature over the interval, minus the records' average (Open-Meteo historical weather for the postcode)
 
-This is applied once, to the all-year mean, so it isn't counted twice.
+A term is kept only if the data shows it clearly (two-sided t-test at 5%); otherwise it is dropped and the model refitted. The adjustment is the predicted rate for the planning horizon divided by the average fitted rate over the records:
 
-**`ols_daily_rate_v1`.** A linear trend in the daily rate, reported with its p-value. It is not applied automatically.
+a = 1 + b_h (f_H − f̄) ÷ base + b_t (T_H − T̄) ÷ base
 
-**`rise_intervals_v1`.** Counts rises, their typical spacing and regularity, and estimates delivery size as rise + μ̂L. Delivery reliability is not inferred: it needs delivery records.
+Here f_H is the horizon's holiday share and f̄ the records' average share. T_H is the expected horizon temperature: the forecast for up to 16 days, then the same dates last year. The adjustment is limited to between 0.7 and 1.4, needs at least 10 usable intervals, and is applied automatically. The page explains it in words for each product.
+
+**`ols_daily_rate_v1`.** A linear trend in the daily rate. It is mentioned only if it is clear, and is not applied automatically.
+
+**`rise_intervals_v1`.** Counts rises in stock, their typical spacing, and estimates delivery size as rise + μ̂L.
 
 **`fefo_expected_unused_v1`.** For each dated batch of current stock, the expected quantity left on its best-before date if stock is used oldest-date-first at the average daily rate. This is a simple expectation; Step 4 gives the full distribution.
 
-External context (holidays, weather, Met Office warnings, IMD 2025, benefit-payment timing, local links) is shown as evidence. It is never applied as an automatic demand multiplier.
+Met Office warnings, IMD 2025, bank holidays and local links are shown for the manager's judgement and don't change any figures.
+
+## Step 2: storage capacity (`capacity.py`, `consumption_weighted_space_allocation_v1`)
+
+Nobody types in capacities.
+
+1. Each storage area entered on the Organisation page is converted to litres, kilograms or item counts. The standard sizes used:
+   - pallet: 1.2 × 1.0 m stacked to 1.5 m, 75% usable, about 1,350 L
+   - shelf: 1 m long, 40 cm deep and 40 cm high, 80% usable, about 130 L
+   - crate: about 45 L
+2. Each product's unit volume, weight and storage type (ambient, chilled or frozen) are estimated by Nebius from its name and pack size. Answers are checked for range and density (0.4–8 L per kg), and rules are used for anything missing or implausible.
+3. Within each storage type, product i gets this share of the space:
+   share_i = μ_i v_i ÷ Σ μ_j v_j (daily demand × unit volume)
+   Products that move faster or take more room get more space.
+4. Capacity_i = share_i × space ÷ v_i, never less than the stock already held. A storage type with no space entered has no limit.
 
 ## Step 3: scenarios (`scenario_model.py`, `common_scenario_config_v1`)
 
 One configuration object covers all four scenarios. The approved baseline is copied, never modified:
 
-- μ_base = μ̂ × approved seasonal adjustment
+- μ_base = μ̂ × a (the holiday and temperature adjustment)
 - μ = μ_base × (1 + demand increase)
 - L′ = L + extra delay
 - delivered = ⌊Q × (1 − quantity reduction)⌋
@@ -75,15 +94,26 @@ The target is T = ⌈F⁻¹(q)⌉ of demand over h. Demand over h is exact: a su
 | Balanced | 0.80 | T = max(T, B) |
 | Resilient | Critical 0.95, Essential 0.90, Standard 0.80 | T = max(T, B) |
 
-The order is Q = max(0, T − IP), where IP is stock on hand plus stock on order. If a category capacity C is known, orders are capped so on hand plus on order stays within C. A short headroom is shared critical first, then essential, then standard. Shortfalls are reported, not hidden.
+The order is Q = max(0, T − IP), where IP is stock on hand plus stock on order, capped so on hand plus on order stays within the product's capacity. Shortfalls caused by capacity are reported, not hidden.
+
+**Fine-tuning.** After choosing a plan, the manager can set its protection level q between 50% and 99%. For Resilient this sets the critical level, and the essential and standard levels move by the same amount. Only that plan is re-simulated, with the same seed, so the demand checksum matches and it stays comparable with the other two.
+
+**Why a shortage chance is high.** For any product with a shortage chance of 20% or more, the plan states the reasons the numbers support:
+
+- current stock is below the demand expected before the first delivery
+- no order can arrive within the horizon
+- storage space limits the order
+- scenario delays, smaller deliveries or higher demand
+- Lean's lower protection level
+- very changeable demand
 
 ## Step 4: simulation (`simulation.py`, `daily_fefo_monte_carlo_crn_v1`)
 
-The defaults are 1,000 futures per policy with seed 42. Demand for every future, day and product is pre-generated once (`gamma_poisson_mixture_v1`: Λ ~ Gamma(1 ÷ α, αμ), D ~ Poisson(Λ)), and so is each delivery's success (Bernoulli(p)). The same draws are used for all three policies. These are the common random numbers.
+The defaults are 1,000 futures per policy with seed 42. Demand for every future, day and product is pre-generated once (`gamma_poisson_mixture_v1`: Λ ~ Gamma(1 ÷ α, αμ), D ~ Poisson(Λ)), The same draws are used for all three policies. These are the common random numbers.
 
 Each day:
 
-1. Scheduled deliveries arrive. A failed delivery brings 0 and is not retried.
+1. Scheduled deliveries arrive. Every delivery is assumed to arrive in full, as stock counts can't show reliability; the Delivery disruption scenario tests late or smaller deliveries.
 2. Stock past its last usable day is removed and counted as waste.
 3. On order days, the policy orders. The order arrives after the actual lead time L′, which every policy faces.
 4. Demand is met from the earliest-dated stock first. The remainder is unmet.
@@ -103,7 +133,6 @@ These checks run on every simulation and are stored with the results:
 
 - **Expected unmet demand:** the mean over futures of Σ unmet.
 - **Shortage chance:** the share of futures with any unmet demand over the horizon.
-- **Service level:** 1 − Σunmet ÷ Σdemand, undefined if demand is 0.
 - **Ending stock** and **average ordered:** means over futures.
 - **Expected waste:** reported only where dates or a shelf life exist; otherwise "Insufficient data".
 - **Shortage before the first delivery:** the share of futures that run short before day L′.

@@ -1,8 +1,8 @@
-# SupplyShield
+# Provision
 
 Decision support for UK food banks. Upload historical stock counts, approve the inferred planning parameters, test a scenario, compare three replenishment policies (Lean, Balanced, Resilient) under 1,000 seeded Monte Carlo runs, then finalise an explainable plan.
 
-SupplyShield supports staff judgement; it doesn't replace it.
+Provision supports staff judgement; it doesn't replace it.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ cp .env.example .env    # then fill in the keys
 | `NEBIUS_BASE_URL`, `NEBIUS_MODEL_ADVANCED`, `NEBIUS_MODEL_EFFICIENT` | Nebius endpoint and models |
 | `TAVILY_API_KEY` | External context search (optional) |
 | `PYTHON_BIN` | Override the Python interpreter (defaults to `.venv`) |
-| `SUPPLYSHIELD_OFFLINE` | Set to `1` to skip every network context source (tests, offline demos) |
+| `PROVISION_OFFLINE` | Set to `1` to skip every network context source (tests, offline demos) |
 
 ## Run
 
@@ -35,7 +35,7 @@ npm run dev      # restarts on file changes
 npm start
 ```
 
-Open http://localhost:3000. The first account creates the organisation; later accounts join the same workspace.
+Open http://localhost:3000 and create an account. Each account is separate: it has its own food bank details, stock records, parameters, results and finalised plans, and can't see any other account's data.
 
 ## Test
 
@@ -46,7 +46,7 @@ npm run test:py  # Python engine tests
 
 ## How it fits together
 
-- **Express** (`app.js`, `routes/`) serves the EJS pages and owns `data/data.json`. Every write goes through `services/storageService.js`, which validates the document, writes atomically and queues writes.
+- **Express** (`app.js`, `routes/`) serves the EJS pages and owns `data/data.json`. The file holds `users` and one workspace per account under `workspaces`. Every request gets `req.store`, a storage handle scoped to the signed-in account. All writes go through `services/storageService.js`, which validates the document, writes atomically and queues writes. A file from the old shared layout is migrated automatically: the first account keeps the data, later accounts start empty, and the original is kept as `data/data.v1-backup-*.json`.
 - **Python** (`python/`) does all statistics, sampling, simulation and metrics. It receives JSON on stdin and returns JSON on stdout through `services/pythonBridge.js`, and never touches the data file.
 - **Nebius** (`services/nebiusService.js`) interprets uploaded spreadsheets and writes explanations from finished calculations. It never produces numbers.
 - **Tavily** (`services/tavilyService.js`) gathers external context. It is optional.

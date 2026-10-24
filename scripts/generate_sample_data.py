@@ -1,4 +1,4 @@
-"""Generate the fictional 12-month sample dataset for SupplyShield.
+"""Generate the fictional 12-month sample dataset for Provision.
 
 Output (fixed seed, so re-running gives identical files):
   data/sample/sample_stock_history.csv  - weekly stock counts as a food bank

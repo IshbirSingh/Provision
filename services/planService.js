@@ -17,6 +17,10 @@ const SCENARIOS = {
 const SCENARIO_FROM_STORED = Object.fromEntries(Object.entries(SCENARIOS).map(([id, s]) => [s.storeAs, id]));
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
+const DEFAULT_QUANTILES = { lean: 0.5, balanced: 0.8, resilient: { critical: 0.95, essential: 0.9, standard: 0.8 } };
+const HIGH_RISK = 0.2;
+// Standard protection level of each policy (Resilient: for critical items).
+const DEFAULT_LEVELS = { lean: 0.5, balanced: 0.8, resilient: 0.95 };
 
 // Scenario config in the spec 3.5 contract shape, from data.scenario.
 function scenarioConfig(data) {
@@ -36,7 +40,7 @@ function scenarioConfig(data) {
   };
 }
 
-function buildSimulationPayload(data) {
+function buildSimulationPayload(data, { policyLevels = null } = {}) {
   const products = {};
   for (const [id, p] of Object.entries(data.products)) {
     const params = data.parameters.products[id];
@@ -51,7 +55,6 @@ function buildSimulationPayload(data) {
       currentStock: params.currentStock,
       leadTimeDays: params.leadTimeDays,
       shelfLifeDays: params.shelfLifeDays,
-      unitCost: params.unitCost,
       batches: Object.values(data.inventory)
         .filter((b) => b.productId === id)
         .map((b) => ({ quantity: b.quantity, expiryDate: b.expiryDate })),
@@ -63,12 +66,14 @@ function buildSimulationPayload(data) {
     asOf: todayIso(),
     global: {
       reviewPeriodDays: g.reviewPeriodDays,
-      deliverySuccessProbability: g.deliverySuccessProbability,
-      quantiles: g.quantiles,
-      categoryCapacity: g.categoryCapacity,
+      // Stock counts can't show delivery reliability; the Delivery disruption
+      // scenario is how unreliable deliveries are tested.
+      deliverySuccessProbability: 1.0,
+      quantiles: g.quantiles || DEFAULT_QUANTILES,
+      productCapacity: g.productCapacity || {},
     },
     products,
-    budget: data.organisation.budget?.amount ? data.organisation.budget : null,
+    ...(policyLevels ? { policyLevels } : {}),
   };
 }
 
@@ -108,10 +113,39 @@ function urgencyOf(r) {
   return 'normal';
 }
 
+// Why a shortage chance is high, in plain words, from the simulation's own
+// inputs and results. Only reasons the numbers support are given.
+function riskReasons(r, inputs, pr, cfg, policy) {
+  if (r.shortageRisk < HIGH_RISK) return [];
+  const reasons = [];
+  const before = inputs.expectedDemandBeforeFirstDelivery;
+  if (inputs.leadTimeDisrupted >= cfg.planningHorizonDays) {
+    reasons.push(`No order can arrive within the ${cfg.planningHorizonDays}-day horizon (the earliest delivery is day ${inputs.leadTimeDisrupted}), so only current stock can be given out.`);
+  } else if (before !== null && inputs.currentStock < before) {
+    reasons.push(`Current stock (${inputs.currentStock}) is less than the ${Math.round(before)} expected to be needed before the earliest delivery on day ${inputs.leadTimeDisrupted}. No order can arrive sooner.`);
+  }
+  if (pr.capacityShortfallPerOrder > 0 && inputs.capacity !== null) {
+    reasons.push(`Storage space limits this product to about ${inputs.capacity} at a time, below the order-up-to level of ${pr.target}.`);
+  }
+  if (cfg.additionalDeliveryDelayDays > 0) reasons.push(`Deliveries arrive ${cfg.additionalDeliveryDelayDays} days late in this scenario.`);
+  if (cfg.deliveryQuantityReduction > 0) reasons.push(`Deliveries bring ${Math.round(cfg.deliveryQuantityReduction * 100)}% less than ordered in this scenario.`);
+  if (cfg.demandIncrease > 0) reasons.push(`Demand is ${Math.round(cfg.demandIncrease * 100)}% above the forecast in this scenario.`);
+  if (policy === 'lean') reasons.push('Lean only orders up to the typical (median) demand, so it accepts more risk by design.');
+  if (inputs.weeklyCv !== null && inputs.weeklyCv > 0.5) reasons.push('Demand changes a lot from week to week, so shortages are hard to rule out.');
+  if (!reasons.length) reasons.push('In a share of the simulated futures, demand is higher than the order-up-to level. A higher protection level would lower this.');
+  return reasons;
+}
+
+// The results to use for a policy: its fine-tuned version if there is one.
+function policyResult(sim, policy) {
+  return sim.fineTuned?.policy === policy ? sim.fineTuned.result : sim.policies[policy];
+}
+
 function buildRecommendation(data, policy) {
   const sim = data.simulation;
   const horizon = sim.config.planningHorizonDays;
-  const chosen = sim.policies[policy];
+  const chosen = policyResult(sim, policy);
+  const fineTune = sim.fineTuned?.policy === policy ? { level: sim.fineTuned.level, levels: sim.fineTuned.levels } : null;
   const products = {};
 
   for (const [id, pr] of Object.entries(chosen.products)) {
@@ -141,14 +175,14 @@ function buildRecommendation(data, policy) {
       expectedEnding: pr.expectedEnding,
       averageOrdered: pr.averageOrdered,
       serviceLevel: pr.serviceLevel,
-      cost: pr.initialOrderCost,
+      capacity: inputs.capacity,
       capacityShortfallPerOrder: pr.capacityShortfallPerOrder,
       expiring: {
         quantity: batches.reduce((s, b) => s + b.quantity, 0),
         earliestDate: batches.map((b) => b.expiryDate).sort()[0] || null,
         batches: batches.map((b) => ({ quantity: b.quantity, expiryDate: b.expiryDate, daysToExpiry: b.daysToExpiry })),
       },
-      alternatives: Object.fromEntries(POLICIES.filter((p) => p !== policy).map((p) => {
+      alternatives: Object.fromEntries(POLICIES.filter((p) => p !== policy || fineTune).map((p) => {
         const o = sim.policies[p].products[id];
         return [p, {
           replenish: o.initialOrder,
@@ -160,6 +194,7 @@ function buildRecommendation(data, policy) {
         }];
       })),
     };
+    r.riskReasons = riskReasons(r, inputs, pr, sim.config, policy);
     r.urgency = urgencyOf(r);
     products[id] = r;
   }
@@ -186,14 +221,13 @@ function buildRecommendation(data, policy) {
     emergencyReserveUnits: protectedRows.reduce((s, r) => s + r.emergencyReserve, 0),
     expiryAlerts: ordered.filter((r) => r.expiring.quantity > 0).length,
     actNow: ordered.filter((r) => r.urgency === 'act_now').length,
-    cost: t.initialOrderCost,
-    costCoverage: t.costCoverage,
-    budget: t.budget,
+    highRisk: ordered.filter((r) => r.riskReasons.length).length,
     warnings: chosen.warnings,
   };
 
   return {
     selectedPolicy: policy,
+    fineTune,
     calculationVersion: sim.calculationVersion,
     inputVersion: sim.inputVersion,
     createdAt: new Date().toISOString(),
@@ -216,4 +250,8 @@ module.exports = {
   calculationVersion,
   simulationIsCurrent,
   buildRecommendation,
+  policyResult,
+  riskReasons,
+  HIGH_RISK,
+  DEFAULT_LEVELS,
 };

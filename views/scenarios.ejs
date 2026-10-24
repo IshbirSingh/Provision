@@ -60,7 +60,7 @@
         <input type="range" id="reserveDays" name="reserveDays" min="0" max="21" step="1" value="<%= config.reserveDays %>" aria-describedby="reserve-out">
         <output id="reserve-out" for="reserveDays"><%= config.reserveDays %> days</output>
       </div>
-      <p class="hint">Balanced and Resilient order up to at least this many days of average demand. It only changes a target when it's larger than what the policy already holds.</p>
+      <p class="hint">Balanced and Resilient always keep at least this many days of average demand in stock.</p>
       <% if (preview) { %><p class="reserve-effect" id="reserve-effect" aria-live="polite"></p><% } %>
     </div>
 
@@ -80,14 +80,14 @@
         <input type="range" id="quantityReductionPct" name="quantityReductionPct" min="0" max="100" step="5" value="<%= reductionPct %>" aria-label="Delivery quantity reduction" aria-describedby="reduction-out">
         <output id="reduction-out" for="quantityReductionPct"><%= reductionPct %>% less</output>
       </div>
-      <p class="hint">A stress test, not an estimate of your suppliers' reliability. Every policy faces the delay; only Resilient plans for it in advance.</p>
+      <p class="hint">Every plan faces the delay; only Resilient plans for it in advance.</p>
     </div>
   </fieldset>
 
   <section class="section active-summary">
     <h2>What will be simulated</h2>
     <ul class="plain-list" id="active-list"></ul>
-    <p class="hint">From approved parameters: <%= global.planningHorizonDays %>-day horizon, orders every <%= global.reviewPeriodDays %> days, <%= Math.round(global.deliverySuccessProbability * 100) %>% of deliveries arriving (assumption). <%= (global.runs || 1000).toLocaleString('en-GB') %> simulated futures with seed <%= global.seed %>, the same for all three policies.</p>
+    <p class="hint">From approved parameters: <%= global.planningHorizonDays %>-day horizon, orders every <%= global.reviewPeriodDays %> days, <%= (global.runs || 1000).toLocaleString('en-GB') %> simulated futures with seed <%= global.seed %>, the same for all three policies.</p>
   </section>
 
   <div class="button-row">

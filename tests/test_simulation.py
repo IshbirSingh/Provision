@@ -17,6 +17,7 @@ MAIN = ROOT / "python" / "main.py"
 sys.path.insert(0, str(ROOT / "python"))
 
 import analysis  # noqa: E402
+import capacity  # noqa: E402
 import demand_model  # noqa: E402
 import metrics  # noqa: E402
 import policies  # noqa: E402
@@ -53,7 +54,7 @@ def payload(products, runs=400, horizon=21, seed=7, capacity=None, success=1.0, 
     return {
         "config": config,
         "asOf": "2026-10-24",
-        "global": {"reviewPeriodDays": 7, "deliverySuccessProbability": success, "quantiles": QUANTILES, "categoryCapacity": capacity or {}},
+        "global": {"reviewPeriodDays": 7, "deliverySuccessProbability": success, "quantiles": QUANTILES, "productCapacity": capacity or {}},
         "products": products,
     }
 
@@ -184,13 +185,23 @@ class SimulationTests(unittest.TestCase):
 
     def test_capacity_caps_orders(self):
         prods = {"rice": product(stock=0), "pasta": product("Pasta", priority="standard", stock=0)}
-        out = simulation.run(payload(prods, capacity={"staple_carbohydrates": 50}))
+        out = simulation.run(payload(prods, capacity={"rice": 30, "pasta": 20}))
         for pol in out["policies"].values():
-            orders = sum(pol["products"][p]["initialOrder"] for p in prods)
-            self.assertLessEqual(orders, 50)
-            # Essential rice is filled before standard pasta.
-            self.assertGreaterEqual(pol["products"]["rice"]["initialOrder"], pol["products"]["pasta"]["initialOrder"])
-            self.assertLessEqual(pol["totals"]["utilisation"]["staple_carbohydrates"]["max"], 1.0)
+            self.assertLessEqual(pol["products"]["rice"]["initialOrder"], 30)
+            self.assertLessEqual(pol["products"]["pasta"]["initialOrder"], 20)
+            self.assertLessEqual(pol["totals"]["utilisation"]["rice"]["max"], 1.0)
+        self.assertEqual(out["inputs"]["rice"]["capacity"], 30)
+
+    def test_fine_tuned_level_changes_only_that_policy(self):
+        prods = {"rice": product(var=30)}
+        base = simulation.run(payload(prods))
+        tuned = simulation.run({**payload(prods), "policyLevels": {"balanced": 0.95}})
+        self.assertGreater(tuned["policies"]["balanced"]["products"]["rice"]["target"], base["policies"]["balanced"]["products"]["rice"]["target"])
+        self.assertEqual(tuned["policies"]["lean"]["products"]["rice"]["target"], base["policies"]["lean"]["products"]["rice"]["target"])
+        self.assertEqual(tuned["policyLevels"]["balanced"]["essential"], 0.95)
+        # Resilient keeps its priority spacing when fine-tuned.
+        res = simulation.run({**payload(prods), "policyLevels": {"resilient": 0.99}})
+        self.assertAlmostEqual(res["policyLevels"]["resilient"]["essential"], 0.94)
 
     def test_fefo_uses_earliest_dated_stock_first(self):
         # 40 units expire in 5 days, 40 later. At 10/day FEFO uses the early batch first: no waste.
@@ -219,6 +230,33 @@ class SimulationTests(unittest.TestCase):
         out = simulation.preview(payload({"rice": product(var=30)}))
         days = out["rice"]["bindsFromDays"]["balanced"]
         self.assertEqual(days, out["rice"]["balanced"] // 10 + 1)
+
+
+class CapacityTests(unittest.TestCase):
+    def test_space_is_shared_by_consumption_and_size(self):
+        out = capacity.run({
+            "storageAreas": [{"label": "Warehouse", "type": "ambient", "count": 1, "capacityEach": 1, "capacityUnit": "pallets"}],
+            "products": {
+                "rice": {"storageType": "ambient", "unitVolumeL": 1.2, "unitWeightKg": 1.0, "dailyDemand": 10, "currentStock": 0},
+                "beans": {"storageType": "ambient", "unitVolumeL": 0.45, "unitWeightKg": 0.45, "dailyDemand": 20, "currentStock": 0},
+                "milk": {"storageType": "chilled", "unitVolumeL": 1.0, "unitWeightKg": 1.0, "dailyDemand": 5, "currentStock": 3},
+            },
+        })
+        rice, beans = out["products"]["rice"], out["products"]["beans"]
+        # Shares follow demand x volume: rice 12 L/day, beans 9 L/day.
+        self.assertAlmostEqual(rice["share"], 12 / 21, places=3)
+        self.assertEqual(rice["capacity"], int(1350 * 12 / 21 / 1.2))
+        self.assertEqual(beans["capacity"], int(1350 * 9 / 21 / 0.45))
+        self.assertIsNone(out["products"]["milk"]["capacity"], "no chilled storage entered, so no limit")
+        self.assertTrue(out["conversions"])
+
+    def test_capacity_never_below_current_stock(self):
+        out = capacity.run({
+            "storageAreas": [{"label": "Shelf", "type": "ambient", "count": 1, "capacityEach": 10, "capacityUnit": "litres"}],
+            "products": {"rice": {"storageType": "ambient", "unitVolumeL": 1.0, "unitWeightKg": 1.0, "dailyDemand": 1, "currentStock": 40}},
+        })
+        self.assertEqual(out["products"]["rice"]["capacity"], 40)
+        self.assertTrue(out["products"]["rice"]["raisedToCurrentStock"])
 
 
 class AnalysisTests(unittest.TestCase):
@@ -252,6 +290,36 @@ class AnalysisTests(unittest.TestCase):
         codes = {f["code"] for f in a["flags"]}
         self.assertIn("stockouts", codes)
         self.assertIn("excluded_movements", codes)
+
+    def weather_case(self, slope):
+        from datetime import date, timedelta
+        rng = np.random.default_rng(5)
+        start = date(2025, 1, 6)
+        temps, records, stock = {}, [], 20000
+        for w in range(40):
+            t = 10 + 8 * np.sin(w / 6)
+            for k in range(7):
+                temps[(start + timedelta(weeks=w, days=k)).isoformat()] = float(t)
+            records.append({"productId": "rice", "date": (start + timedelta(weeks=w)).isoformat(), "quantity": stock})
+            stock -= int(70 + slope * (10 - t) + rng.normal(0, 3))
+        out = analysis.run({
+            "asOf": "2025-10-20", "horizonDays": 14, "holidays": [],
+            "products": {"rice": {"name": "Rice", "category": "staple_carbohydrates", "priority": "essential"}},
+            "records": records, "batches": [],
+            "weather": {"history": temps, "horizon": [2.0] * 14},
+        })
+        return out["products"]["rice"]["adjustment"]
+
+    def test_weather_effect_is_measured_from_the_records(self):
+        adj = self.weather_case(slope=4)  # 4 more units a week per degree colder
+        self.assertTrue(adj["weather"]["applied"])
+        self.assertGreater(adj["multiplier"], 1.2)
+        self.assertTrue(any("degree colder" in e for e in adj["explanation"]))
+
+    def test_no_weather_adjustment_without_a_clear_effect(self):
+        adj = self.weather_case(slope=0)
+        self.assertFalse(adj["weather"]["applied"])
+        self.assertAlmostEqual(adj["multiplier"], 1.0, places=2)
 
     def test_insufficient_data_is_not_filled_in(self):
         a = self.run_one([200, 250])

@@ -1,23 +1,29 @@
 // Step 2: historical analysis, external context and parameter approval.
 //
-// Analysis runs in Python and is cached against the approved dataset version,
-// as-of date and planning horizon. Parameters start from the analysis; any
-// value a manager changes is labelled as their own assumption.
+// Order of work: local context (incl. past and forecast temperatures) ->
+// product sizes -> Python analysis -> Python storage capacity. Results are
+// cached against the approved dataset, the date, the horizon and the
+// context they used. Parameters start from the analysis; a value a manager
+// changes is labelled as their own.
 
 const express = require('express');
 const storage = require('../services/storageService');
 const context = require('../services/contextService');
+const sizeService = require('../services/sizeService');
 const catalog = require('../services/catalog');
 const { runPython } = require('../services/pythonBridge');
 const { requireStep } = require('../services/workflowService');
 
 const router = express.Router();
 
-// Labelled assumptions used where stock counts can't tell us the answer.
+// Fixed settings. Stock counts can't show delivery reliability, so every
+// delivery is assumed to arrive (the Delivery disruption scenario tests
+// otherwise). Policy protection levels are fixed per policy and can be
+// fine-tuned on the plan page.
 const DEFAULT_GLOBAL = {
   reviewPeriodDays: 7,
   leadTimeDays: 7,
-  deliverySuccessProbability: 0.9,
+  deliverySuccessProbability: 1.0,
   reserveDays: 7,
   quantiles: { lean: 0.5, balanced: 0.8, resilient: { critical: 0.95, essential: 0.9, standard: 0.8 } },
   runs: 1000,
@@ -33,10 +39,20 @@ const SHELF_LIFE_DAYS = {
   allergy_safe_dietary: 120,
   other: null,
 };
+const EDITABLE = ['dailyDemand', 'dailyVariance', 'currentStock', 'leadTimeDays', 'shelfLifeDays'];
+const SOURCE_OF_DEFAULT = {
+  dailyDemand: 'inferred',
+  dailyVariance: 'inferred',
+  seasonalMultiplier: 'inferred',
+  currentStock: 'approved_data',
+  leadTimeDays: 'assumption',
+  shelfLifeDays: 'assumption',
+};
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const datasetVersion = (data) => Math.max(0, ...Object.values(data.audit.datasets || {}).map((d) => d.version));
 const round = (x, n = 2) => (x === null || x === undefined ? null : Math.round(x * 10 ** n) / 10 ** n);
+const historyFrom = (data) => Object.values(data.historicalStock).map((r) => r.date).sort()[0] || null;
 
 function horizonOf(data) {
   return data.parameters.global?.planningHorizonDays || data.organisation.planningHorizonDays || 28;
@@ -44,14 +60,17 @@ function horizonOf(data) {
 
 function analysisIsCurrent(data, horizon) {
   const m = data.analysis.meta;
-  return m && m.datasetVersion === datasetVersion(data) && m.asOf === todayIso() && m.horizonDays === horizon;
+  return m && m.datasetVersion === datasetVersion(data) && m.asOf === todayIso() && m.horizonDays === horizon
+    && m.contextFetchedAt === (data.externalContext?.other?.fetchedAt ?? null);
 }
 
-async function runAnalysis(data, horizon) {
+async function runAnalysis(data, ctx, horizon) {
+  const temps = ctx?.weather?.temperatures;
   const result = await runPython('analyse', {
     asOf: todayIso(),
     horizonDays: horizon,
     holidays: context.ENGLAND_SCHOOL_HOLIDAYS,
+    weather: temps?.status === 'ok' ? { history: temps.history, horizon: temps.horizon, source: temps.source } : null,
     products: data.products,
     records: Object.values(data.historicalStock),
     batches: Object.values(data.inventory),
@@ -60,7 +79,13 @@ async function runAnalysis(data, horizon) {
     products: result.products,
     patterns: { methods: result.methods, assumptions: result.assumptions },
     warnings: {},
-    meta: { datasetVersion: datasetVersion(data), asOf: result.asOf, horizonDays: horizon, ranAt: new Date().toISOString() },
+    meta: {
+      datasetVersion: datasetVersion(data),
+      asOf: result.asOf,
+      horizonDays: horizon,
+      contextFetchedAt: ctx?.other?.fetchedAt ?? null,
+      ranAt: new Date().toISOString(),
+    },
   };
 }
 
@@ -69,78 +94,99 @@ function inferredDefaults(product, a, global) {
   return {
     dailyDemand: dm.available ? dm.dailyMean : null,
     dailyVariance: dm.available ? dm.dailyVariance ?? dm.dailyMean : null,
-    seasonalMultiplier: a?.seasonality?.suggestedMultiplier ?? 1,
+    seasonalMultiplier: a?.adjustment?.multiplier ?? 1,
     currentStock: a?.stock?.current ?? 0,
     leadTimeDays: global.leadTimeDays,
     shelfLifeDays: SHELF_LIFE_DAYS[product.category] ?? null,
-    unitCost: product.unitCost ?? null,
   };
 }
 
-const SOURCE_OF_DEFAULT = {
-  dailyDemand: 'inferred',
-  dailyVariance: 'inferred',
-  seasonalMultiplier: 'inferred',
-  currentStock: 'approved_data',
-  leadTimeDays: 'assumption',
-  shelfLifeDays: 'assumption',
-  unitCost: 'not_provided',
-};
-
 function buildDraft(data, horizon) {
-  const global = {
-    ...DEFAULT_GLOBAL,
-    planningHorizonDays: horizon,
-    categoryCapacity: Object.fromEntries(Object.keys(catalog.CATEGORIES).map((c) => [c, null])),
-  };
+  const global = { ...DEFAULT_GLOBAL, planningHorizonDays: horizon, productCapacity: {} };
   const products = {};
   for (const [id, p] of Object.entries(data.products)) {
-    const values = inferredDefaults(p, data.analysis.products[id], global);
-    products[id] = { ...values, sources: { ...SOURCE_OF_DEFAULT } };
+    products[id] = { ...inferredDefaults(p, data.analysis.products[id], global), sources: { ...SOURCE_OF_DEFAULT } };
   }
   return { products, global, approved: false, basedOnDataset: datasetVersion(data), approvedAt: null, approvedBy: null, approvedVersion: null };
 }
 
-// After the analysis changes (new day or horizon), refresh values that still
-// come from it; values the manager set are left alone.
+// After the analysis changes, refresh values that still come from it. The
+// holiday and weather adjustment always comes from the analysis.
 function refreshInferred(params, data) {
   for (const [id, p] of Object.entries(params.products)) {
     const defaults = inferredDefaults(data.products[id], data.analysis.products[id], params.global);
-    for (const key of ['dailyDemand', 'dailyVariance', 'seasonalMultiplier', 'currentStock']) {
+    p.seasonalMultiplier = defaults.seasonalMultiplier;
+    for (const key of ['dailyDemand', 'dailyVariance', 'currentStock']) {
       if (p.sources?.[key] === SOURCE_OF_DEFAULT[key]) p[key] = defaults[key];
     }
   }
 }
 
-// Bring analysis, context and the parameter draft up to date. Returns the
-// fresh data. Context failures never block the page.
-async function ensureCurrent(data) {
-  const horizon = horizonOf(data);
-  const needAnalysis = !analysisIsCurrent(data, horizon);
-  const needContext = !context.isFresh(data.externalContext, data.organisation, horizon);
-  const needDraft = !Object.keys(data.parameters.products).length || data.parameters.basedOnDataset !== datasetVersion(data);
-  if (!needAnalysis && !needContext && !needDraft) return data;
-
-  const [analysis, ctx] = await Promise.all([
-    needAnalysis ? runAnalysis(data, horizon) : null,
-    needContext ? context.gatherContext(data.organisation, { asOf: todayIso(), horizonDays: horizon }) : null,
-  ]);
-
-  return storage.mutate((d) => {
-    if (analysis) d.analysis = analysis;
-    if (ctx) d.externalContext = ctx;
-    if (needDraft || d.parameters.basedOnDataset !== datasetVersion(d)) {
-      d.parameters = buildDraft(d, horizon);
-    } else if (analysis) {
-      refreshInferred(d.parameters, d);
-    }
-  });
+async function computeCapacity(data, sizes) {
+  const products = {};
+  for (const [id, p] of Object.entries(data.parameters.products)) {
+    const s = sizes.sizes[id];
+    if (!s) continue;
+    products[id] = {
+      storageType: s.storageType,
+      unitVolumeL: s.unitVolumeL,
+      unitWeightKg: s.unitWeightKg,
+      dailyDemand: (p.dailyDemand || 0) * (p.seasonalMultiplier || 1),
+      currentStock: p.currentStock || 0,
+    };
+  }
+  return runPython('capacity', { storageAreas: Object.values(data.organisation.storage || {}), products });
 }
 
-function modelFor(mean, variance) {
-  // Display only: the Python engine applies the same rule authoritatively.
-  if (!mean || variance === null || variance <= mean) return { model: 'Poisson', alpha: 0 };
-  return { model: 'Negative binomial', alpha: (variance - mean) / mean ** 2 };
+function applyCapacity(params, capacity) {
+  params.capacity = capacity;
+  params.global.productCapacity = Object.fromEntries(Object.entries(capacity.products).map(([id, c]) => [id, c.capacity]));
+  delete params.global.categoryCapacity;
+}
+
+// Bring context, sizes, analysis, capacity and the draft up to date.
+// Returns the fresh data. Context failures never block the page.
+async function ensureCurrent(store, data, { forceContext = false } = {}) {
+  const horizon = horizonOf(data);
+  // Approved parameters stay as approved until the data or horizon changes,
+  // or the manager refreshes the context.
+  const m = data.analysis.meta;
+  if (!forceContext && data.parameters.approved && data.parameters.capacity
+      && m?.datasetVersion === datasetVersion(data) && m?.horizonDays === horizon) {
+    return data;
+  }
+  const from = historyFrom(data);
+  const needContext = forceContext || !context.isFresh(data.externalContext, data.organisation, horizon, from);
+  const ctx = needContext ? await context.gatherContext(data.organisation, { asOf: todayIso(), horizonDays: horizon, historyFrom: from }) : data.externalContext;
+  const withCtx = { ...data, externalContext: ctx };
+
+  const needAnalysis = !analysisIsCurrent(withCtx, horizon);
+  const needDraft = !Object.keys(data.parameters.products).length || data.parameters.basedOnDataset !== datasetVersion(data);
+  const [analysis, sizes] = await Promise.all([
+    needAnalysis ? runAnalysis(data, ctx, horizon) : null,
+    sizeService.inferSizes(data.products, data.parameters.sizes),
+  ]);
+  const needSizes = sizes.key !== data.parameters.sizes?.key;
+  const needCapacity = needAnalysis || needDraft || needSizes || needContext || !data.parameters.capacity;
+  if (!needContext && !needAnalysis && !needDraft && !needCapacity) return data;
+
+  // Assemble the next parameters, then compute capacity from them.
+  const next = structuredClone(withCtx);
+  if (analysis) next.analysis = analysis;
+  if (needDraft) next.parameters = buildDraft(next, horizon);
+  else if (analysis) refreshInferred(next.parameters, next);
+  next.parameters.sizes = sizes;
+  const capacity = await computeCapacity(next, sizes);
+
+  return store.mutate((d) => {
+    d.externalContext = ctx;
+    if (analysis) d.analysis = analysis;
+    // Approval stays only if nothing the approval depended on changed.
+    const keepApproval = d.parameters.approved && !needDraft && !analysis;
+    d.parameters = next.parameters;
+    applyCapacity(d.parameters, capacity);
+    if (!keepApproval && d.parameters.approved) d.parameters.approved = false;
+  });
 }
 
 // The weekly figures shown on the form. Variability is the model's weekly
@@ -150,7 +196,6 @@ function displayValues(p) {
   return {
     weeklyDemand: has(p.dailyDemand) ? round(7 * p.dailyDemand, 1) : null,
     weeklySd: has(p.dailyVariance) ? round(Math.sqrt(7 * Math.max(p.dailyVariance, p.dailyDemand || 0)), 1) : null,
-    seasonalMultiplier: has(p.seasonalMultiplier) ? round(p.seasonalMultiplier, 3) : null,
   };
 }
 
@@ -159,16 +204,17 @@ function viewRows(data) {
   return Object.entries(data.products)
     .map(([id, product]) => {
       const p = params.products[id] || {};
-      const a = data.analysis.products[id] || {};
       const shown = displayValues(p);
       return {
         id,
         product,
         params: p,
-        analysis: a,
+        analysis: data.analysis.products[id] || {},
+        size: params.sizes?.sizes?.[id] || null,
+        capacity: params.capacity?.products?.[id] || null,
         weeklyDemand: shown.weeklyDemand,
         weeklySd: shown.weeklySd,
-        ...modelFor(p.dailyDemand, p.dailyVariance),
+        adjustedWeekly: p.dailyDemand ? round(7 * p.dailyDemand * (p.seasonalMultiplier || 1), 1) : null,
         daysOfCover: p.dailyDemand ? round(p.currentStock / (p.dailyDemand * (p.seasonalMultiplier || 1)), 1) : null,
       };
     })
@@ -176,45 +222,27 @@ function viewRows(data) {
       || (x.daysOfCover ?? Infinity) - (y.daysOfCover ?? Infinity));
 }
 
-function categoryRows(data) {
-  return Object.entries(catalog.CATEGORIES)
-    .map(([id, c]) => {
-      const products = Object.entries(data.products).filter(([, p]) => p.category === id);
-      return {
-        id,
-        label: c.label,
-        products: products.map(([, p]) => p.name),
-        units: [...new Set(products.map(([, p]) => p.unit).filter(Boolean))],
-        stock: products.reduce((s, [pid]) => s + (data.parameters.products[pid]?.currentStock || 0), 0),
-        capacity: data.parameters.global.categoryCapacity?.[id] ?? null,
-      };
-    })
-    .filter((c) => c.products.length);
-}
-
-router.get('/parameters', requireStep('parameters'), async (req, res) => {
-  const data = await ensureCurrent(res.locals.data);
-  res.render('parameters', {
+function renderPage(res, data, { errors = [], status = 200 } = {}) {
+  res.status(status).render('parameters', {
     title: 'Planning parameters',
     analysis: data.analysis,
     ctx: data.externalContext,
     params: data.parameters,
     rows: viewRows(data),
-    categoryRows: categoryRows(data),
     organisation: data.organisation,
     priorities: catalog.PRIORITIES,
     categories: catalog.CATEGORIES,
-    errors: [],
-    scripts: ['/vendor/plotly.min.js', '/js/charts.js'],
+    errors,
+    scripts: ['/vendor/plotly.min.js', '/vendor/katex/katex.min.js', '/js/charts.js', '/js/maths.js'],
   });
+}
+
+router.get('/parameters', requireStep('parameters'), async (req, res) => {
+  renderPage(res, await ensureCurrent(req.store, res.locals.data));
 });
 
 router.post('/parameters/context', requireStep('parameters'), async (req, res) => {
-  const data = res.locals.data;
-  const ctx = await context.gatherContext(data.organisation, { asOf: todayIso(), horizonDays: horizonOf(data) });
-  await storage.mutate((d) => {
-    d.externalContext = ctx;
-  });
+  await ensureCurrent(req.store, res.locals.data, { forceContext: true });
   req.session.flash = { type: 'success', message: 'Local context refreshed.' };
   res.redirect('/parameters#context');
 });
@@ -241,34 +269,15 @@ function parseForm(body, data) {
 
   const g = body.global || {};
   const global = {
+    ...DEFAULT_GLOBAL,
     planningHorizonDays: take('Planning horizon', g.planningHorizonDays, { min: 1, max: 90, integer: true }),
-    reviewPeriodDays: take('Order review period', g.reviewPeriodDays, { min: 1, max: 28, integer: true }),
-    leadTimeDays: take('Default lead time', g.leadTimeDays, { min: 0, max: 60, integer: true }),
-    deliverySuccessProbability: (() => {
-      const pct = take('Delivery success rate', g.deliverySuccessPercent, { min: 0, max: 100 });
-      return pct === null || pct === undefined ? pct : pct / 100;
-    })(),
-    reserveDays: take('Reserve days', g.reserveDays, { min: 0, max: 21, integer: true }),
-    quantiles: {
-      lean: take('Lean quantile', g.qLean, { min: 0.01, max: 0.99 }),
-      balanced: take('Balanced quantile', g.qBalanced, { min: 0.01, max: 0.99 }),
-      resilient: {
-        critical: take('Resilient quantile (critical)', g.qCritical, { min: 0.01, max: 0.999 }),
-        essential: take('Resilient quantile (essential)', g.qEssential, { min: 0.01, max: 0.999 }),
-        standard: take('Resilient quantile (standard)', g.qStandard, { min: 0.01, max: 0.999 }),
-      },
-    },
+    reviewPeriodDays: take('Order every', g.reviewPeriodDays, { min: 1, max: 28, integer: true }),
+    leadTimeDays: take('Usual lead time', g.leadTimeDays, { min: 0, max: 60, integer: true }),
+    reserveDays: take('Emergency reserve', g.reserveDays, { min: 0, max: 21, integer: true }),
     runs: data.parameters.global.runs || DEFAULT_GLOBAL.runs,
     seed: data.parameters.global.seed ?? DEFAULT_GLOBAL.seed,
-    categoryCapacity: {},
+    productCapacity: data.parameters.global.productCapacity || {},
   };
-  const q = global.quantiles;
-  if (q.lean !== undefined && q.balanced !== undefined && q.lean >= q.balanced) {
-    errors.push('The Lean quantile must be lower than the Balanced quantile.');
-  }
-  for (const id of Object.keys(catalog.CATEGORIES)) {
-    global.categoryCapacity[id] = take(`Capacity for ${catalog.CATEGORIES[id].label}`, body.capacity?.[id], { min: 0, integer: true, allowBlank: true }) ?? null;
-  }
 
   const products = {};
   const priorities = {};
@@ -277,15 +286,14 @@ function parseForm(body, data) {
     const label = product.name;
     const before = data.parameters.products[id] || {};
     const weekly = take(`${label}: weekly demand`, f.weeklyDemand, { min: 0, allowBlank: true });
-    const sd = take(`${label}: weekly variability`, f.weeklySd, { min: 0, allowBlank: true });
+    const sd = take(`${label}: variability`, f.weeklySd, { min: 0, allowBlank: true });
     const p = {
       dailyDemand: weekly === null || weekly === undefined ? null : weekly / 7,
       dailyVariance: sd === null || sd === undefined ? null : (sd * sd) / 7,
-      seasonalMultiplier: take(`${label}: seasonal adjustment`, f.seasonalMultiplier, { min: 0.5, max: 2 }),
-      currentStock: take(`${label}: current stock`, f.currentStock, { min: 0, integer: true }),
+      seasonalMultiplier: before.seasonalMultiplier ?? 1,
+      currentStock: take(`${label}: stock now`, f.currentStock, { min: 0, integer: true }),
       leadTimeDays: take(`${label}: lead time`, f.leadTimeDays, { min: 0, max: 60, integer: true }),
       shelfLifeDays: take(`${label}: shelf life`, f.shelfLifeDays, { min: 1, max: 3650, integer: true, allowBlank: true }),
-      unitCost: take(`${label}: unit cost`, f.unitCost, { min: 0, allowBlank: true }),
     };
     if (p.dailyDemand !== null && p.dailyVariance === null) p.dailyVariance = p.dailyDemand;
 
@@ -296,15 +304,14 @@ function parseForm(body, data) {
     const changed = {
       dailyDemand: shown.weeklyDemand !== round(weekly, 1),
       dailyVariance: shown.weeklySd !== round(sd, 1),
-      seasonalMultiplier: shown.seasonalMultiplier !== round(p.seasonalMultiplier, 3),
       currentStock: (before.currentStock ?? null) !== p.currentStock,
       leadTimeDays: (before.leadTimeDays ?? null) !== p.leadTimeDays,
       shelfLifeDays: (before.shelfLifeDays ?? null) !== p.shelfLifeDays,
-      unitCost: round(before.unitCost, 2) !== round(p.unitCost, 2),
     };
-    for (const [k, c] of Object.entries(changed)) if (c) sources[k] = 'manual';
-    // Unchanged values keep their exact stored figures (no rounding drift).
-    for (const [k, c] of Object.entries(changed)) if (!c && k in before) p[k] = before[k];
+    for (const k of EDITABLE) {
+      if (changed[k]) sources[k] = 'manual';
+      else if (k in before) p[k] = before[k]; // no rounding drift
+    }
     products[id] = { ...p, sources };
 
     if (f.priority && catalog.PRIORITIES[f.priority]) priorities[id] = f.priority;
@@ -322,44 +329,35 @@ router.post('/parameters', requireStep('parameters'), async (req, res) => {
       if (p.dailyDemand === null) errors.push(`${data.products[id].name}: enter a weekly demand before approving.`);
     }
   }
-  if (errors.length) {
-    return res.status(422).render('parameters', {
-      title: 'Planning parameters',
-      analysis: data.analysis,
-      ctx: data.externalContext,
-      params: data.parameters,
-      rows: viewRows(data),
-      categoryRows: categoryRows(data),
-      organisation: data.organisation,
-      priorities: catalog.PRIORITIES,
-      categories: catalog.CATEGORIES,
-      errors,
-      scripts: ['/vendor/plotly.min.js', '/js/charts.js'],
-    });
-  }
+  if (errors.length) return renderPage(res, data, { errors, status: 422 });
 
+  // Recompute what depends on the edited values: analysis if the horizon
+  // changed (holidays and weather), and storage capacity.
   const horizonChanged = global.planningHorizonDays !== horizonOf(data);
-  const analysis = horizonChanged ? await runAnalysis(data, global.planningHorizonDays) : null;
+  const next = structuredClone(data);
+  next.parameters = { ...data.parameters, products, global };
+  if (horizonChanged) {
+    const ctx = await context.gatherContext(data.organisation, { asOf: todayIso(), horizonDays: global.planningHorizonDays, historyFrom: historyFrom(data) });
+    next.externalContext = ctx;
+    next.analysis = await runAnalysis(next, ctx, global.planningHorizonDays);
+    refreshInferred(next.parameters, next);
+  }
+  const capacity = data.parameters.sizes ? await computeCapacity(next, data.parameters.sizes) : null;
   const userId = res.locals.user.id;
 
-  await storage.mutate((d) => {
+  await req.store.mutate((d) => {
     const priorityChanged = Object.entries(priorities).some(([id, pr]) => d.products[id]?.priority !== pr);
     for (const [id, pr] of Object.entries(priorities)) if (d.products[id]) d.products[id].priority = pr;
     if (priorityChanged) storage.applyInvalidation(d, 'products');
-    if (analysis) d.analysis = analysis;
+    if (horizonChanged) {
+      d.externalContext = next.externalContext;
+      d.analysis = next.analysis;
+    }
 
     // Any save clears results built on the previous parameters.
     storage.applyInvalidation(d, 'scenario');
-    d.parameters = {
-      ...d.parameters,
-      products,
-      global,
-      approved: false,
-      approvedAt: null,
-      approvedBy: null,
-      approvedVersion: null,
-    };
-    if (analysis) refreshInferred(d.parameters, d);
+    d.parameters = { ...next.parameters, approved: false, approvedAt: null, approvedBy: null, approvedVersion: null };
+    if (capacity) applyCapacity(d.parameters, capacity);
 
     if (approve) {
       d.audit.inputVersion += 1;
@@ -369,7 +367,7 @@ router.post('/parameters', requireStep('parameters'), async (req, res) => {
       d.parameters.approvedVersion = d.audit.inputVersion;
       // Scenario starts from the approved defaults.
       d.scenario = {
-        ...storage.defaultData().scenario,
+        ...storage.defaultWorkspace().scenario,
         reserveDays: global.reserveDays,
         planningHorizonDays: global.planningHorizonDays,
       };

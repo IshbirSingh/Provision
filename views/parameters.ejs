@@ -2,195 +2,105 @@
 <%
   const g = params.global;
   const fmt = (x, n = 1) => x === null || x === undefined ? '–' : Number(x).toLocaleString('en-GB', { maximumFractionDigits: n });
-  const sourceLabel = { inferred: 'Estimated', manual: 'Your value', assumption: 'Assumption', approved_data: 'From counts', not_provided: '' };
+  const pctSigned = (m) => { const v = Math.round((m - 1) * 100); return v === 0 ? 'None' : `${v > 0 ? '+' : '−'}${Math.abs(v)}%`; };
+  const sourceLabel = { manual: 'Your value', assumption: 'Assumption' };
   const src = (p, key) => {
     const s = p.sources?.[key];
-    return s && sourceLabel[s] ? `<span class="src src--${s}">${sourceLabel[s]}</span>` : '';
+    return sourceLabel[s] ? `<span class="src src--${s}">${sourceLabel[s]}</span>` : '';
   };
   const ok = (part) => part && part.status === 'ok';
   const loc = ctx.other?.location;
-  const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const temps = ctx.weather?.temperatures;
   const fmtDate = (iso) => iso ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }) : '';
+  const lowCover = rows.filter((r) => r.daysOfCover !== null && r.daysOfCover < g.planningHorizonDays);
+  const holidayApplied = rows.filter((r) => r.analysis.adjustment?.holiday?.applied).length;
+  const weatherApplied = rows.filter((r) => r.analysis.adjustment?.weather?.applied).length;
+  const adjusted = rows.filter((r) => Math.round(((r.params.seasonalMultiplier ?? 1) - 1) * 100) !== 0).length;
+  const caps = params.capacity;
+  const stypes = caps ? Object.entries(caps.types) : [];
+  const hasSpace = stypes.some(([, t]) => t.capacityLitres || t.capacityKg || t.capacityUnits);
 %>
 <p class="eyebrow">Step 2 of 5</p>
 <h1>Planning parameters</h1>
-<p class="lead">Estimated from your approved stock counts as of <%= analysis.meta?.asOf %>. Check them, correct anything you know better, then approve. Values you change are marked as your own.</p>
+<p class="lead">Estimated from your approved stock counts. Check the figures, correct anything you know better, then approve.</p>
 
 <% if (params.approved) { %>
-  <div class="notice notice--success">Approved <%= new Date(params.approvedAt).toLocaleString('en-GB') %> (input version <%= params.approvedVersion %>). Saving changes will clear the approval and any results based on it. <a href="/scenario">Go to scenario</a></div>
-<% } else { %>
-  <div class="notice notice--info">Draft. Nothing after this step can run until these parameters are approved.</div>
+  <div class="notice notice--success">Approved <%= new Date(params.approvedAt).toLocaleString('en-GB') %>. Saving changes clears the approval and any results based on it. <a href="/scenario">Go to scenario</a></div>
 <% } %>
 <%- include('partials/errors', { errors }) %>
 
-<section class="section" id="context">
-  <h2>Local context</h2>
-  <p>Evidence about the coming <%= g.planningHorizonDays %> days around <%= organisation.postcode %>. <strong>None of this changes the numbers automatically.</strong> Use it to decide whether to adjust demand or which scenario to test.</p>
-  <div class="context-grid">
-    <div class="context-item">
-      <h3>Area</h3>
-      <% if (ok(loc)) { %>
-        <p><%= loc.district %>, <%= loc.region || loc.country %></p>
-        <% if (ok(ctx.deprivation)) { const dep = ctx.deprivation; %>
-          <p>Deprivation (IMD 2025): <strong>decile <%= dep.imdDecile %> of 10</strong> <span class="hint">1 is the most deprived 10% of neighbourhoods in England. Income decile <%= dep.incomeDecile %>; children in income-deprived households decile <%= dep.idaciDecile %>. Neighbourhood <%= dep.lsoaName %>.</span></p>
-        <% } else { %><p class="hint">Deprivation: <%= ctx.deprivation?.detail || 'unavailable' %></p><% } %>
-      <% } else { %><p class="hint">Location unavailable: <%= loc?.detail || 'not fetched' %></p><% } %>
-    </div>
-
-    <div class="context-item">
-      <h3>Holidays in the horizon</h3>
-      <% const school = ctx.holidays?.school; const bank = ctx.holidays?.bank; %>
-      <% if (school?.inHorizon?.length) { %>
-        <ul class="plain-list"><% for (const h of school.inHorizon) { %><li><strong><%= h.name %></strong>, <%= fmtDate(h.start) %> to <%= fmtDate(h.end) %> (<%= h.days %> days in horizon)</li><% } %></ul>
-      <% } else { %><p>No school holidays.<% if (school?.next) { %> Next: <%= school.next.name %>, from <%= fmtDate(school.next.start) %>.<% } %></p><% } %>
-      <p class="hint"><%= school?.source %></p>
-      <% if (ok(bank)) { %>
-        <p><%= bank.inHorizon.length ? 'Bank holidays: ' + bank.inHorizon.map((b) => `${b.title} (${fmtDate(b.date)})`).join(', ') : 'No bank holidays.' %></p>
-      <% } else { %><p class="hint">Bank holidays unavailable.</p><% } %>
-      <% if (ok(ctx.other?.benefits)) { %><p class="hint"><%= ctx.other.benefits.note %></p><% } %>
-    </div>
-
-    <div class="context-item">
-      <h3>Weather</h3>
-      <% const fc = ctx.weather?.forecast; const warn = ctx.weather?.warnings; %>
-      <% if (ok(warn) && warn.items.length) { %>
-        <ul class="plain-list"><% for (const w of warn.items) { %><li class="note note--warning"><a href="<%= w.link %>"><%= w.title %></a></li><% } %></ul>
-      <% } else if (ok(warn)) { %><p>No Met Office warnings in force.</p><% } else { %><p class="hint">Met Office warnings unavailable.</p><% } %>
-      <% if (ok(fc)) { %>
-        <p><%= fc.days.length %>-day forecast: <%= fc.coldDays %> night(s) at or below freezing, <%= fc.heavyRainDays %> day(s) with 10 mm+ rain.</p>
-        <details>
-          <summary>Daily forecast</summary>
-          <table class="table table--compact">
-            <thead><tr><th>Date</th><th></th><th class="num">Low</th><th class="num">High</th><th class="num">Rain</th></tr></thead>
-            <tbody><% for (const day of fc.days) { %><tr><td><%= fmtDate(day.date) %></td><td><%= day.summary %></td><td class="num"><%= fmt(day.minC, 0) %>°</td><td class="num"><%= fmt(day.maxC, 0) %>°</td><td class="num"><%= fmt(day.rainMm, 1) %> mm</td></tr><% } %></tbody>
-          </table>
-        </details>
-      <% } else { %><p class="hint">Forecast unavailable.</p><% } %>
-    </div>
-
-    <div class="context-item">
-      <h3>Local links</h3>
-      <% const ls = ctx.other?.localSearch; %>
-      <% if (ok(ls)) { %>
-        <% if (ls.termDates.length) { %><p>Check local term dates: <a href="<%= ls.termDates[0].url %>"><%= ls.termDates[0].title %></a></p><% } %>
-        <% if (ls.news.length) { %><p>Recent news:</p><ul class="link-list"><% for (const n of ls.news) { %><li><a href="<%= n.url %>"><%= n.title %></a></li><% } %></ul><% } %>
-        <p class="hint"><%= ls.source %></p>
-      <% } else { %><p class="hint"><%= ls?.detail || 'Search unavailable.' %></p><% } %>
-    </div>
-  </div>
-  <form method="post" action="/parameters/context" class="inline-form" data-busy="Refreshing…">
-    <span class="hint">Fetched <%= ctx.other?.fetchedAt ? new Date(ctx.other.fetchedAt).toLocaleString('en-GB') : 'never' %>.</span>
-    <button type="submit" class="link-button">Refresh</button>
-  </form>
-</section>
+<div class="glance">
+  <div><span class="glance__value"><%= rows.length %></span> products</div>
+  <div><span class="glance__value<%= lowCover.length ? ' is-low' : '' %>"><%= lowCover.length %></span> with less stock than <%= g.planningHorizonDays %> days of demand</div>
+  <div><span class="glance__value"><%= adjusted %></span> adjusted for school holidays or weather</div>
+</div>
 
 <form method="post" action="/parameters" class="form" data-busy="Saving…">
 <section class="section">
   <h2>Planning settings</h2>
-  <div class="field-row">
-    <div class="field">
-      <label for="g-horizon">Planning horizon (days)</label>
-      <input id="g-horizon" name="global[planningHorizonDays]" type="number" min="1" max="90" step="1" class="input--short" value="<%= g.planningHorizonDays %>">
+  <div class="settings-grid">
+    <div class="setting">
+      <label for="g-horizon">Planning horizon</label>
+      <div class="setting__input"><input id="g-horizon" name="global[planningHorizonDays]" type="number" min="1" max="90" step="1" value="<%= g.planningHorizonDays %>"> <span>days</span></div>
+      <p class="hint">How far ahead the plan looks.</p>
     </div>
-    <div class="field">
-      <label for="g-review">Order every (days)</label>
-      <span class="hint">How often a replenishment order can be placed. Same for every policy.</span>
-      <input id="g-review" name="global[reviewPeriodDays]" type="number" min="1" max="28" step="1" class="input--short" value="<%= g.reviewPeriodDays %>">
+    <div class="setting">
+      <label for="g-review">Order every</label>
+      <div class="setting__input"><input id="g-review" name="global[reviewPeriodDays]" type="number" min="1" max="28" step="1" value="<%= g.reviewPeriodDays %>"> <span>days</span></div>
+      <p class="hint">How often you can place an order.</p>
     </div>
-    <div class="field">
-      <label for="g-lead">Default lead time (days)</label>
-      <span class="hint">Assumption: time from order to arrival. Stock counts can't show this.</span>
-      <input id="g-lead" name="global[leadTimeDays]" type="number" min="0" max="60" step="1" class="input--short" value="<%= g.leadTimeDays %>">
+    <div class="setting">
+      <label for="g-lead">Usual lead time</label>
+      <div class="setting__input"><input id="g-lead" name="global[leadTimeDays]" type="number" min="0" max="60" step="1" value="<%= g.leadTimeDays %>"> <span>days</span></div>
+      <p class="hint">From ordering to arrival.</p>
     </div>
-    <div class="field">
-      <label for="g-success">Deliveries that arrive (%)</label>
-      <span class="hint">Hypothetical. Needs delivery records to measure.</span>
-      <input id="g-success" name="global[deliverySuccessPercent]" type="number" min="0" max="100" step="1" class="input--short" value="<%= Math.round(g.deliverySuccessProbability * 100) %>">
-    </div>
-    <div class="field">
-      <label for="g-reserve">Emergency reserve (days)</label>
-      <span class="hint">Starting value for the Safety First scenario.</span>
-      <input id="g-reserve" name="global[reserveDays]" type="number" min="0" max="21" step="1" class="input--short" value="<%= g.reserveDays %>">
+    <div class="setting">
+      <label for="g-reserve">Emergency reserve</label>
+      <div class="setting__input"><input id="g-reserve" name="global[reserveDays]" type="number" min="0" max="21" step="1" value="<%= g.reserveDays %>"> <span>days</span></div>
+      <p class="hint">Starting point for Safety first.</p>
     </div>
   </div>
-  <details>
-    <summary>Policy settings</summary>
-    <p class="hint">Each policy orders up to a quantile of demand over the lead time plus the order period. Higher quantiles hold more stock. Results are measured by simulation, not assumed from these numbers.</p>
-    <div class="field-row">
-      <div class="field"><label for="q-lean">Lean</label><input id="q-lean" name="global[qLean]" type="number" step="0.01" min="0.01" max="0.99" class="input--short" value="<%= g.quantiles.lean %>"></div>
-      <div class="field"><label for="q-bal">Balanced</label><input id="q-bal" name="global[qBalanced]" type="number" step="0.01" min="0.01" max="0.99" class="input--short" value="<%= g.quantiles.balanced %>"></div>
-      <div class="field"><label for="q-crit">Resilient: critical</label><input id="q-crit" name="global[qCritical]" type="number" step="0.01" min="0.01" max="0.999" class="input--short" value="<%= g.quantiles.resilient.critical %>"></div>
-      <div class="field"><label for="q-ess">Resilient: essential</label><input id="q-ess" name="global[qEssential]" type="number" step="0.01" min="0.01" max="0.999" class="input--short" value="<%= g.quantiles.resilient.essential %>"></div>
-      <div class="field"><label for="q-std">Resilient: standard</label><input id="q-std" name="global[qStandard]" type="number" step="0.01" min="0.01" max="0.999" class="input--short" value="<%= g.quantiles.resilient.standard %>"></div>
-    </div>
-  </details>
 </section>
 
 <section class="section">
   <h2>Products</h2>
-  <p>Weekly demand is <em>inferred consumption</em> from falls in stock between counts, with its 95% range. Variability is the week-to-week standard deviation. The seasonal adjustment applies the difference between school-holiday and term-time consumption when your data shows one; set it to 1 for none.</p>
+  <p class="hint">Weekly demand is estimated from falls in stock between counts. The adjustment is worked out from your own records for school holidays and weather (see below) and is applied automatically.</p>
   <div class="table-scroll">
     <table class="table table--form table--params">
       <thead>
         <tr>
           <th>Product</th><th>Priority</th><th class="num">Stock now</th><th class="num">Days of cover</th>
-          <th class="num">Weekly demand</th><th class="num">Variability</th><th>Model</th>
-          <th class="num">Seasonal adj.</th><th class="num">Lead time</th><th class="num">Shelf life</th><th class="num">Unit cost £</th><th>Check</th>
+          <th class="num">Weekly demand</th><th class="num">Variability</th><th class="num">Adjustment</th>
+          <th class="num">Lead time</th><th class="num">Shelf life</th><th></th>
         </tr>
       </thead>
       <tbody>
-        <% for (const r of rows) { const p = r.params; const a = r.analysis; const dm = a.demand || {};
-             const warnings = (a.flags || []).filter((f) => f.level === 'warning'); %>
+        <% for (const r of rows) { const p = r.params; const dm = r.analysis.demand || {};
+             const warnings = (r.analysis.flags || []).filter((f) => f.level === 'warning'); %>
         <tr>
-          <td><a href="#detail-<%= r.id %>"><%= r.product.name %></a><br><span class="small"><%= categories[r.product.category].label %> · <%= r.product.unit || 'units' %></span></td>
+          <td><strong><%= r.product.name %></strong><br><span class="small"><%= categories[r.product.category].label %> · <%= r.product.unit || 'units' %></span></td>
           <td>
             <select name="p[<%= r.id %>][priority]" aria-label="Priority for <%= r.product.name %>">
               <% for (const [pid, pr] of Object.entries(priorities)) { %><option value="<%= pid %>"<%= r.product.priority === pid ? ' selected' : '' %>><%= pr.label %></option><% } %>
             </select>
           </td>
-          <td class="num"><input name="p[<%= r.id %>][currentStock]" type="number" min="0" step="1" class="input--num" value="<%= p.currentStock %>" aria-label="Current stock"><%- src(p, 'currentStock') %></td>
-          <td class="num<%= r.daysOfCover !== null && r.daysOfCover < g.planningHorizonDays ? ' is-low' : '' %>"><%= r.daysOfCover === null ? '–' : fmt(r.daysOfCover) %></td>
+          <td class="num"><input name="p[<%= r.id %>][currentStock]" type="number" min="0" step="1" class="input--num" value="<%= p.currentStock %>" aria-label="Stock now"><%- src(p, 'currentStock') %></td>
+          <td class="num<%= r.daysOfCover !== null && r.daysOfCover < g.planningHorizonDays ? ' is-low' : '' %>"><%= r.daysOfCover === null ? '–' : fmt(r.daysOfCover, 0) %></td>
           <td class="num">
             <input name="p[<%= r.id %>][weeklyDemand]" type="number" min="0" step="0.1" class="input--num" value="<%= r.weeklyDemand ?? '' %>" aria-label="Weekly demand"><%- src(p, 'dailyDemand') %>
-            <% if (dm.weeklyCi95) { %><span class="hint nowrap"><%= fmt(dm.weeklyCi95[0]) %>–<%= fmt(dm.weeklyCi95[1]) %></span><% } %>
+            <% if (dm.weeklyCi95 && p.sources?.dailyDemand !== 'manual') { %><span class="hint nowrap">likely <%= fmt(dm.weeklyCi95[0], 0) %>–<%= fmt(dm.weeklyCi95[1], 0) %></span><% } %>
           </td>
           <td class="num"><input name="p[<%= r.id %>][weeklySd]" type="number" min="0" step="0.1" class="input--num" value="<%= r.weeklySd ?? '' %>" aria-label="Weekly variability"><%- src(p, 'dailyVariance') %></td>
-          <td class="small"><%= r.model %></td>
-          <td class="num"><input name="p[<%= r.id %>][seasonalMultiplier]" type="number" min="0.5" max="2" step="0.01" class="input--num input--narrow" value="<%= p.seasonalMultiplier %>" aria-label="Seasonal adjustment"><%- src(p, 'seasonalMultiplier') %></td>
+          <td class="num"><%= pctSigned(p.seasonalMultiplier ?? 1) %></td>
           <td class="num"><input name="p[<%= r.id %>][leadTimeDays]" type="number" min="0" max="60" step="1" class="input--num input--narrow" value="<%= p.leadTimeDays %>" aria-label="Lead time (days)"><%- src(p, 'leadTimeDays') %></td>
           <td class="num"><input name="p[<%= r.id %>][shelfLifeDays]" type="number" min="1" step="1" class="input--num input--narrow" value="<%= p.shelfLifeDays ?? '' %>" placeholder="none" aria-label="Shelf life (days)"><%- src(p, 'shelfLifeDays') %></td>
-          <td class="num"><input name="p[<%= r.id %>][unitCost]" type="number" min="0" step="0.01" class="input--num input--narrow" value="<%= p.unitCost ?? '' %>" aria-label="Unit cost"></td>
-          <td><% if (warnings.length) { %><a href="#detail-<%= r.id %>" class="tag tag--warn"><%= warnings.length %> to check</a><% } %></td>
+          <td><a href="#detail-<%= r.id %>" class="detail-link<%= warnings.length ? ' detail-link--warn' : '' %>"><%= warnings.length ? `${warnings.length} to check` : 'Details' %></a></td>
         </tr>
         <% } %>
       </tbody>
     </table>
   </div>
-  <p class="hint">Days of cover = stock now ÷ adjusted daily demand. Highlighted where it's shorter than the planning horizon. Shelf life applies to new deliveries in the simulation; blank means it doesn't expire within the horizon.</p>
-</section>
-
-<section class="section">
-  <h2>Storage capacity</h2>
-  <p>The most units of each category you can hold. Leave blank if you don't know, and SupplyShield won't apply a limit. Your storage as entered:
-    <% const areas = Object.values(organisation.storage || {}); %>
-    <%= areas.length ? areas.map((s) => `${s.count} × ${s.label} (${s.type}${s.capacityEach ? `, ${s.capacityEach} ${s.capacityUnit === 'm3' ? 'm³' : s.capacityUnit} each` : ''})`).join('; ') : 'none entered' %>.
-    These can't be converted to product units reliably, so they aren't used directly.
-  </p>
-  <div class="table-scroll">
-    <table class="table table--form">
-      <thead><tr><th>Category</th><th>Products</th><th class="num">Stock now</th><th class="num">Capacity (units)</th></tr></thead>
-      <tbody>
-        <% for (const c of categoryRows) { %>
-        <tr>
-          <td><%= c.label %></td>
-          <td class="small"><%= c.products.join(', ') %><%= c.units.length > 1 ? ` (counted in ${c.units.join(' and ')})` : '' %></td>
-          <td class="num"><%= fmt(c.stock, 0) %></td>
-          <td class="num"><input name="capacity[<%= c.id %>]" type="number" min="0" step="1" class="input--num" value="<%= c.capacity ?? '' %>" placeholder="no limit" aria-label="Capacity for <%= c.label %>"></td>
-        </tr>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
+  <p class="hint">Days of cover is stock now ÷ adjusted daily demand, in red when it's shorter than the planning horizon. Variability is the usual week-to-week spread. Lead time and shelf life are in days; leave shelf life blank if the item doesn't go out of date within the horizon.</p>
 </section>
 
 <div class="button-row approve-box">
@@ -199,57 +109,142 @@
 </div>
 </form>
 
+<section class="section" id="context">
+  <h2>How local information is used</h2>
+  <div class="context-grid">
+    <div class="context-item">
+      <h3>School holidays</h3>
+      <p class="tag<%= holidayApplied ? ' tag--done' : ' tag--muted' %>"><%= holidayApplied ? `Changes the forecast for ${holidayApplied} product${holidayApplied === 1 ? '' : 's'}` : 'No clear effect in your records' %></p>
+      <% const school = ctx.holidays?.school; %>
+      <p><strong>In this horizon:</strong> <%= school?.inHorizon?.length ? school.inHorizon.map((h) => `${h.name}, ${fmtDate(h.start)}–${fmtDate(h.end)}`).join('; ') : 'none' %>.</p>
+      <p><strong>How it's used:</strong> your records are split into holiday and term-time weeks. Where consumption clearly differs between them, the forecast is adjusted for the holiday days in this horizon.</p>
+      <p class="hint">The dates are a fixed calendar of typical England school holidays, not looked up for your council.<% const ls = ctx.other?.localSearch; if (ok(ls) && ls.termDates.length) { %> <a href="<%= ls.termDates[0].url %>">Check your local term dates</a>.<% } %></p>
+    </div>
+
+    <div class="context-item">
+      <h3>Weather</h3>
+      <p class="tag<%= weatherApplied ? ' tag--done' : ' tag--muted' %>"><%= weatherApplied ? `Changes the forecast for ${weatherApplied} product${weatherApplied === 1 ? '' : 's'}` : ok(temps) ? 'No clear effect in your records' : 'Not available' %></p>
+      <% if (ok(temps)) { %><p><strong>Next <%= g.planningHorizonDays %> days:</strong> about <%= fmt(temps.horizonMean) %>°C on average.</p><% } %>
+      <p><strong>How it's used:</strong> your past consumption is compared with the daily temperature in your area over the same weeks. Where colder or warmer weeks clearly changed consumption, the forecast is adjusted for the temperature expected in this horizon.</p>
+      <p class="hint"><%= ok(temps) ? `${temps.source}. ${temps.horizonNote}` : 'Past weather for your area couldn\'t be fetched, so weather isn\'t used.' %></p>
+      <% const warn = ctx.weather?.warnings; if (ok(warn) && warn.items.length) { %>
+        <ul class="plain-list"><% for (const w of warn.items.slice(0, 2)) { %><li class="note note--warning"><a href="<%= w.link %>"><%= w.title %></a></li><% } %></ul>
+        <p class="hint">Met Office warnings are for awareness only.</p>
+      <% } %>
+    </div>
+
+    <div class="context-item">
+      <h3>Your area</h3>
+      <p class="tag tag--muted">For your judgement only</p>
+      <% if (ok(loc)) { %>
+        <p><%= loc.district %>, <%= loc.region || loc.country %>.<% if (ok(ctx.deprivation)) { %> Deprivation decile <strong><%= ctx.deprivation.imdDecile %> of 10</strong> (1 = most deprived in England, IMD 2025).<% } %></p>
+      <% } else { %><p class="hint">Location unavailable.</p><% } %>
+      <% const bank = ctx.holidays?.bank; if (ok(bank)) { %>
+        <p><%= bank.inHorizon.length ? 'Bank holidays: ' + bank.inHorizon.map((b) => `${b.title} (${fmtDate(b.date)})`).join(', ') + '. Benefits due then are usually paid early.' : 'No bank holidays in this horizon.' %></p>
+      <% } %>
+      <p class="hint">These don't change any figures.</p>
+    </div>
+  </div>
+  <form method="post" action="/parameters/context" class="inline-form" data-busy="Refreshing…">
+    <span class="hint">Updated <%= ctx.other?.fetchedAt ? new Date(ctx.other.fetchedAt).toLocaleString('en-GB') : 'never' %>.</span>
+    <button type="submit" class="link-button">Refresh</button>
+  </form>
+</section>
+
+<section class="section" id="storage">
+  <h2>Storage space</h2>
+  <% if (!hasSpace) { %>
+    <p>No storage sizes have been entered, so orders aren't limited by space. <a href="/account">Add your storage</a> and Provision will work out how much of each product fits.</p>
+  <% } else { %>
+    <p>Worked out for you. Each product's size comes from its name and pack size, and space is shared in proportion to how much room each product's consumption takes up, so faster-moving and bulkier items get more.</p>
+    <div class="glance glance--small">
+      <% for (const [type, t] of stypes) { if (!t.capacityLitres && !t.capacityKg && !t.capacityUnits) continue; %>
+      <div>
+        <span class="glance__value"><%= t.capacityLitres ? `${fmt(t.capacityLitres, 0)} L` : t.capacityKg ? `${fmt(t.capacityKg, 0)} kg` : `${fmt(t.capacityUnits, 0)} items` %></span>
+        <%= type %> space<%= t.currentUse !== null && t.currentUse !== undefined ? `, ${Math.round(t.currentUse * 100)}% full now` : '' %>
+      </div>
+      <% } %>
+    </div>
+    <details>
+      <summary>Space by product</summary>
+      <div class="table-scroll">
+        <table class="table table--compact">
+          <thead><tr><th>Product</th><th>Kept</th><th class="num">Size of one</th><th class="num">Share of space</th><th class="num">Room for</th><th class="num">Stock now</th></tr></thead>
+          <tbody>
+            <% for (const r of rows) { const c = r.capacity; const s = r.size; if (!s) continue; %>
+            <tr>
+              <td><%= r.product.name %></td>
+              <td><%= s.storageType %></td>
+              <td class="num"><%= fmt(s.unitVolumeL, 2) %> L</td>
+              <td class="num"><%= c && c.share !== null && c.share !== undefined ? `${fmt(c.share * 100, 0)}%` : '–' %></td>
+              <td class="num"><%= c?.capacity ?? 'No limit' %></td>
+              <td class="num"><%= r.params.currentStock %></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">
+        Sizes: <%= params.sizes?.source === 'nebius' ? 'typical UK retail sizes estimated by AI and checked for plausibility' : 'estimated from pack sizes and units' %>.
+        <% if (caps.conversions.length) { %>Conversions: <%= caps.conversions.join('; ') %>.<% } %>
+        A product's limit is never set below the stock you already hold.
+      </p>
+    </details>
+  <% } %>
+</section>
+
 <section class="section" id="details">
   <h2>How each estimate was made</h2>
-  <% for (const r of rows) { const a = r.analysis; if (!a.observations) continue; const o = a.observations; const dm = a.demand; const s = a.seasonality || {}; const t = a.trend || {}; const sup = a.supply || {}; const ex = a.expiry || {}; %>
+  <% for (const r of rows) { const a = r.analysis; if (!a.observations) continue; const o = a.observations; const dm = a.demand; const adj = a.adjustment || {}; const sup = a.supply || {}; const ex = a.expiry || {}; const t = a.trend || {};
+       const warnings = (a.flags || []).filter((f) => f.level === 'warning'); %>
   <details class="detail" id="detail-<%= r.id %>">
-    <summary><strong><%= r.product.name %></strong> <span class="small"><%= o.counts %> counts, <%= o.from %> to <%= o.to %></span>
-      <% const w = (a.flags || []).filter((f) => f.level === 'warning').length; if (w) { %><span class="tag tag--warn"><%= w %> to check</span><% } %>
+    <summary><strong><%= r.product.name %></strong> <span class="small"><%= o.counts %> counts, <%= fmtDate(o.from) %> to <%= fmtDate(o.to) %></span>
+      <% if (warnings.length) { %><span class="tag tag--warn"><%= warnings.length %> to check</span><% } %>
     </summary>
     <div class="detail__body">
-      <div class="detail__chart" data-chart="stock" data-series="<%= JSON.stringify(a.chart) %>" data-unit="<%= r.product.unit || 'units' %>"></div>
-      <div class="grid-2">
-        <dl class="summary">
-          <div><dt>Intervals between counts</dt><dd><%= o.intervals %> (typically every <%= o.typicalIntervalDays %> days)</dd></div>
-          <div><dt>Used for demand</dt><dd><%= dm.intervalsUsed %> falls in stock<%= dm.fallback === 'censored_included' ? ', including some that ended at zero' : '' %></dd></div>
-          <div><dt>Not used</dt><dd><%= o.byType.rise %> rises (deliveries), <%= o.byType.censored %> ended at zero, <%= o.byType.excluded %> explained by notes, <%= o.byType.unchanged %> unchanged</dd></div>
+      <% if (warnings.length) { %>
+      <ul class="plain-list"><% for (const f of warnings) { %><li class="note note--warning"><%= f.message %></li><% } %></ul>
+      <% } %>
+      <div class="detail__chart" data-chart="stock" data-series="<%= JSON.stringify(a.chart) %>" data-unit="<%= r.product.unit || 'unit' %>"></div>
+
+      <div class="explain">
+        <div class="explain__block">
+          <h3>Demand</h3>
           <% if (dm.available) { %>
-          <div><dt>Weekly demand</dt><dd><%= fmt(dm.weeklyMean) %> <%= r.product.unit %>s (95% range <%= fmt(dm.weeklyCi95?.[0]) %>–<%= fmt(dm.weeklyCi95?.[1]) %>)</dd></div>
-          <div><dt>Daily mean and variance</dt><dd>μ̂ = <%= fmt(dm.dailyMean, 3) %>, v̂ = <%= fmt(dm.dailyVariance, 3) %></dd></div>
-          <div><dt>Distribution</dt><dd><%= dm.model === 'negative_binomial' ? `Negative binomial, α̂ = ${fmt(dm.dispersionAlpha, 4)} (variance above the mean)` : 'Poisson (variance not above the mean)' %></dd></div>
+            <p>Stock fell in <%= dm.intervalsUsed %> of <%= o.intervals %> intervals between counts, by <%= fmt(dm.unitsObserved, 0) %> in total over <%= dm.daysObserved %> days.</p>
+            <p class="formula" data-tex="\hat\mu = \frac{\sum c}{\sum L} = \frac{<%= dm.unitsObserved %>}{<%= dm.daysObserved %>} = <%= fmt(dm.dailyMean, 2) %>\ \text{a day} = <%= fmt(dm.weeklyMean, 1) %>\ \text{a week}" data-display="block"></p>
+            <p class="hint">Intervals with a delivery (<%= o.byType.rise %>), ending with no stock (<%= o.byType.censored %>) or explained by notes (<%= o.byType.excluded %>) don't show demand, so they aren't used.</p>
+            <p class="formula" data-tex="<%= dm.model === 'negative_binomial' ? `D \\sim \\mathrm{NegBin}(\\mu,\\ \\alpha = ${fmt(dm.dispersionAlpha, 3)}),\\qquad \\mathrm{Var}(D) = \\mu + \\alpha\\mu^2` : 'D \\sim \\mathrm{Poisson}(\\mu),\\qquad \\mathrm{Var}(D) = \\mu' %>" data-display="block"></p>
+            <p class="hint"><%= dm.model === 'negative_binomial' ? 'Demand varies more than chance alone explains, so the simulation uses a negative binomial distribution.' : 'Demand varies about as much as chance alone, so the simulation uses a Poisson distribution.' %></p>
           <% } else { %>
-          <div><dt>Weekly demand</dt><dd>Insufficient data</dd></div>
+            <p>Too few falls in stock to estimate demand. Enter a weekly figure above.</p>
           <% } %>
-        </dl>
-        <dl class="summary">
-          <div><dt>Trend</dt><dd><%= t.available ? `${t.percentPerMonth > 0 ? '+' : ''}${fmt(t.percentPerMonth)}% a month (p = ${fmt(t.pValue, 3)})${t.significant ? '' : ', not significant'}. Not applied automatically.` : 'Insufficient data' %></dd></div>
-          <div><dt>School holidays</dt><dd><%= s.holidayRatio ? `${fmt(s.holidayRatio, 2)}× term-time rate. ` : '' %><%= s.reason %></dd></div>
-          <div><dt>Deliveries</dt><dd><%= sup.rises %> rises<%= sup.medianDaysBetweenRises ? `, typically every ${fmt(sup.medianDaysBetweenRises, 0)} days (${sup.regularity})` : '' %><%= sup.estimatedDeliverySize ? `; estimated size ${fmt(sup.estimatedDeliverySize, 0)}` : '' %>. <%= sup.note %></dd></div>
-          <div><dt>Weekday pattern</dt><dd><%= a.weekday?.available ? Object.entries(a.weekday.ratio).map(([k, v]) => `${k} ${fmt(v, 2)}`).join(', ') : a.weekday?.reason %></dd></div>
-          <% if (s.monthlyRatio && Object.keys(s.monthlyRatio).length) { %>
-          <div><dt>By month (× average)</dt><dd class="small"><%= Object.entries(s.monthlyRatio).map(([m, v]) => `${months[m]} ${fmt(v, 2)}`).join(' · ') %></dd></div>
+        </div>
+        <div class="explain__block">
+          <h3>Holidays and weather</h3>
+          <% for (const line of adj.explanation || []) { %><p><%= line %></p><% } %>
+          <% if (dm.available && Math.round(((adj.multiplier ?? 1) - 1) * 100) !== 0) { %>
+            <p class="formula" data-tex="\mu = \hat\mu \times <%= adj.multiplier %> = <%= fmt(dm.dailyMean * adj.multiplier, 2) %>\ \text{a day}" data-display="block"></p>
           <% } %>
-        </dl>
+          <% if (t.available && t.clear) { %><p>Consumption has been <%= t.percentPerMonth > 0 ? 'rising' : 'falling' %> by about <%= fmt(Math.abs(t.percentPerMonth), 0) %>% a month. This isn't applied automatically; change weekly demand if you expect it to continue.</p><% } %>
+          <h3>Deliveries seen</h3>
+          <p><%= sup.rises %> rises in stock<%= sup.medianDaysBetweenRises ? `, usually ${fmt(sup.medianDaysBetweenRises, 0)} days apart` : '' %><%= sup.estimatedDeliverySize ? `, typically about ${fmt(sup.estimatedDeliverySize, 0)} at a time` : '' %>.</p>
+        </div>
       </div>
-      <% if (ex.batches?.length || ex.undatedQuantity) { %>
+
+      <% if (ex.batches?.length) { %>
       <h3>Current stock by date</h3>
       <table class="table table--compact">
-        <thead><tr><th>Best before</th><th class="num">Quantity</th><th class="num">Days left</th><th class="num">Expected left at date</th><th></th></tr></thead>
+        <thead><tr><th>Best before</th><th class="num">Quantity</th><th class="num">Days left</th><th class="num">Likely left on that date</th></tr></thead>
         <tbody>
           <% for (const b of ex.batches) { %>
-          <tr><td><%= b.expiryDate %></td><td class="num"><%= b.quantity %></td><td class="num"><%= b.daysToExpiry %></td><td class="num"><%= b.expectedUnused ?? '–' %></td><td><%- b.pastDate ? '<span class="tag tag--alert">Past date</span>' : b.atRisk ? '<span class="tag tag--warn">Distribute first</span>' : '' %></td></tr>
+          <tr><td><%= fmtDate(b.expiryDate) %><%- b.atRisk ? ' <span class="tag tag--warn">Give out first</span>' : '' %></td><td class="num"><%= b.quantity %></td><td class="num"><%= b.daysToExpiry %></td><td class="num"><%= b.expectedUnused ?? '–' %></td></tr>
           <% } %>
-          <% if (ex.undatedQuantity) { %><tr><td>No date recorded</td><td class="num"><%= ex.undatedQuantity %></td><td></td><td></td><td></td></tr><% } %>
         </tbody>
       </table>
-      <p class="hint">Expected left at date assumes stock is used oldest-date-first at the adjusted average rate. Step 4 simulates the full range.</p>
-      <% } %>
-      <% if (a.flags?.length) { %>
-      <ul class="plain-list"><% for (const f of a.flags) { %><li class="note note--<%= f.level %>"><%= f.message %></li><% } %></ul>
       <% } %>
     </div>
   </details>
   <% } %>
-  <p class="hint">Methods: <%= Object.values(analysis.patterns?.methods || {}).join(', ') %>. See docs/calculation-methods.md.</p>
 </section>
 <%- include('partials/foot') %>

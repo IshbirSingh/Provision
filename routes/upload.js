@@ -50,13 +50,13 @@ function renderUpload(res, { error = null, status = 200 } = {}) {
 }
 
 // Interpret a file and replace the staging area with the result.
-async function stageFile(buffer, filename) {
+async function stageFile(store, buffer, filename) {
   const parsed = fileService.parseFile(buffer, filename);
   const fileHash = crypto.createHash('sha256').update(buffer).digest('hex');
-  const { aiCache } = await storage.loadData().then((d) => d.staging);
+  const { aiCache } = (await store.loadData()).staging;
   const { staging, cacheEntry } = await mapping.interpretUpload(parsed, { filename, fileHash, cache: aiCache });
 
-  await storage.mutate((data) => {
+  await store.mutate((data) => {
     const cache = { ...(data.staging.aiCache || {}) };
     if (cacheEntry) {
       cache[cacheEntry.key] = { ...cacheEntry.value, savedAt: new Date().toISOString() };
@@ -73,7 +73,7 @@ router.get('/upload', requireStep('data'), (req, res) => renderUpload(res));
 router.post('/upload', requireStep('data'), upload.single('file'), async (req, res) => {
   if (!req.file) return renderUpload(res, { status: 422, error: 'Choose a .csv or .xlsx file to upload.' });
   try {
-    await stageFile(req.file.buffer, req.file.originalname);
+    await stageFile(req.store, req.file.buffer, req.file.originalname);
   } catch (err) {
     console.error('[upload]', err.message);
     return renderUpload(res, { status: 422, error: `The file could not be read: ${err.message}` });
@@ -83,12 +83,12 @@ router.post('/upload', requireStep('data'), upload.single('file'), async (req, r
 
 router.post('/upload/sample', requireStep('data'), async (req, res) => {
   const file = 'sample_stock_history.csv';
-  await stageFile(fs.readFileSync(path.join(SAMPLE_DIR, file)), file);
+  await stageFile(req.store, fs.readFileSync(path.join(SAMPLE_DIR, file)), file);
   res.redirect('/review');
 });
 
 router.post('/upload/manual', requireStep('data'), async (req, res) => {
-  await storage.mutate((data) => {
+  await req.store.mutate((data) => {
     data.staging = { ...mapping.emptyStaging(), aiCache: data.staging.aiCache || {} };
   });
   res.redirect('/review');
@@ -161,7 +161,7 @@ router.post('/review/record', requireStep('data'), async (req, res) => {
   const { id, changes } = req.body || {};
   if (typeof id !== 'string' || !changes || typeof changes !== 'object') return badRequest(res, 'Invalid request');
 
-  const result = await storage.mutate((data) => {
+  const result = await req.store.mutate((data) => {
     const rec = data.staging.records[id];
     if (!rec) return { error: 'Row not found' };
 
@@ -202,7 +202,7 @@ router.post('/review/record', requireStep('data'), async (req, res) => {
 });
 
 router.post('/review/record/new', requireStep('data'), async (req, res) => {
-  const result = await storage.mutate((data) => {
+  const result = await req.store.mutate((data) => {
     const { records } = data.staging;
     const nextRow = Math.max(1, ...Object.values(records).map((r) => r.rowNumber)) + 1;
     const nextId = `row_${String(Object.keys(records).length + 1).padStart(5, '0')}`;
@@ -234,7 +234,7 @@ router.post('/review/product', requireStep('data'), async (req, res) => {
   const { id, changes } = req.body || {};
   if (typeof id !== 'string' || !changes || typeof changes !== 'object') return badRequest(res, 'Invalid request');
 
-  const result = await storage.mutate((data) => {
+  const result = await req.store.mutate((data) => {
     const p = data.staging.products[id];
     if (!p) return { error: 'Product not found' };
     if ('name' in changes) {
@@ -263,7 +263,7 @@ router.post('/review/product', requireStep('data'), async (req, res) => {
 router.post('/review/product/new', requireStep('data'), async (req, res) => {
   const name = textOrNull(req.body?.name, 80);
   if (!name) return badRequest(res, 'Enter a product name');
-  const result = await storage.mutate((data) => {
+  const result = await req.store.mutate((data) => {
     const id = mapping.newProduct(data.staging.products, { name, category: req.body.category, unit: req.body.unit });
     return { product: { id, ...data.staging.products[id] } };
   });
@@ -272,7 +272,7 @@ router.post('/review/product/new', requireStep('data'), async (req, res) => {
 
 // Re-read the stored rows with a corrected column mapping. Edits are lost.
 router.post('/review/columns', requireStep('data'), async (req, res) => {
-  const data = await storage.loadData();
+  const data = await req.store.loadData();
   const { staging } = data;
   const headers = staging.headers || [];
   const override = Object.fromEntries(headers.map((h, i) => [h, req.body[`col_${i}`]]));
@@ -290,7 +290,7 @@ router.post('/review/columns', requireStep('data'), async (req, res) => {
   next.method = 'rules';
   next.model = null;
   next.warnings.w_manual = { level: 'info', message: 'Columns were set by hand, so product names were grouped by rules.' };
-  await storage.mutate((d) => {
+  await req.store.mutate((d) => {
     validation.validateStaging(next);
     d.staging = { ...next, aiCache: d.staging.aiCache || {} };
   });
@@ -299,8 +299,8 @@ router.post('/review/columns', requireStep('data'), async (req, res) => {
 });
 
 router.post('/review/discard', requireStep('data'), async (req, res) => {
-  await storage.mutate((data) => {
-    data.staging = { ...storage.defaultData().staging, aiCache: data.staging.aiCache || {} };
+  await req.store.mutate((data) => {
+    data.staging = { ...storage.defaultWorkspace().staging, aiCache: data.staging.aiCache || {} };
   });
   req.session.flash = { type: 'info', message: 'Upload discarded. Your approved data has not changed.' };
   res.redirect('/upload');
@@ -308,7 +308,7 @@ router.post('/review/discard', requireStep('data'), async (req, res) => {
 
 router.post('/review/approve', requireStep('data'), async (req, res) => {
   const userId = res.locals.user.id;
-  const result = await storage.mutate((data) => {
+  const result = await req.store.mutate((data) => {
     const built = validation.buildApprovedDataset(data.staging);
     if (built.error) return built;
 
@@ -329,7 +329,7 @@ router.post('/review/approve', requireStep('data'), async (req, res) => {
       dateFormat: data.staging.dateFormat,
       ...built.summary,
     };
-    data.staging = { ...storage.defaultData().staging, aiCache: data.staging.aiCache || {} };
+    data.staging = { ...storage.defaultWorkspace().staging, aiCache: data.staging.aiCache || {} };
     data.metadata.currentStep = 2;
     return { summary: built.summary };
   });

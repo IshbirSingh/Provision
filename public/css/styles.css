@@ -1,4 +1,4 @@
-/* SupplyShield - plain, functional styling. */
+/* Provision - plain, functional styling. */
 
 :root {
   --text: #1c1c1a;
@@ -204,6 +204,31 @@ details > summary { cursor: pointer; list-style-position: outside; }
 .summary-heading { display: inline; margin: 0; }
 .approve-box { border-top: 2px solid var(--border); padding-top: 20px; }
 
+/* At-a-glance strip */
+.glance { display: flex; flex-wrap: wrap; gap: 8px 36px; padding: 14px 0; margin-bottom: 28px; border-top: 2px solid var(--text); border-bottom: 1px solid var(--rule); }
+.glance > div { color: var(--muted); }
+.glance__value { display: block; font-size: 1.6rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.glance__value.is-low { color: var(--alert); }
+.glance--small { border-top-width: 1px; margin-bottom: 16px; }
+.glance--small .glance__value { font-size: 1.25rem; }
+
+/* Aligned settings: label, input, then hint, in the same rows for every field */
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px 28px; }
+.setting { display: grid; grid-template-rows: auto auto auto; align-content: start; }
+.setting label { font-weight: 600; }
+.setting__input { display: flex; align-items: center; gap: 8px; margin: 4px 0 6px; }
+.setting__input input { width: 96px; margin: 0; }
+.setting .hint { margin: 0; }
+
+/* Explanations with formulas */
+.explain { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 36px; }
+.explain__block h3 { margin-top: 8px; }
+.formula { overflow-x: auto; padding: 6px 0; margin: 4px 0 8px; }
+.formula .katex-display { margin: 0; text-align: left; }
+.formula .katex-display > .katex { text-align: left; }
+.detail-link { font-size: 0.88rem; white-space: nowrap; }
+.detail-link--warn { color: var(--warn); font-weight: 600; }
+
 /* Parameters page */
 .context-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 32px; margin-bottom: 12px; }
 .context-item { border-top: 1px solid var(--rule); padding-top: 12px; margin-bottom: 16px; }
@@ -292,6 +317,16 @@ details > summary { cursor: pointer; list-style-position: outside; }
 .plan-section ul { padding-left: 18px; margin-top: 0; }
 .plan-section li { margin-bottom: 6px; }
 .finalise-box { background: var(--surface); border: 2px solid var(--accent); padding: 20px; }
+.fine-tune { background: var(--surface); border: 1px solid var(--rule); padding: 16px 20px; }
+.fine-tune p { max-width: 75ch; }
+.fine-tune .button-row { margin-top: 8px; }
+.risk-reasons { font-size: 0.9rem; color: var(--alert); padding: 2px 0 6px; max-width: 900px; }
+.risk-reasons strong { color: var(--text); }
+.why__grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.why__compare { max-width: 640px; margin-top: 4px; }
+.formulas dd { display: flex; flex-direction: column; gap: 2px; }
+.formulas .formula { padding: 0; margin: 0; }
+.audit { padding-top: 8px; }
 
 /* Print */
 @media print {

@@ -139,7 +139,7 @@ function groupByRules(stats) {
 
 // --- Nebius ---------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You interpret food bank stock-count spreadsheets for SupplyShield.
+const SYSTEM_PROMPT = `You interpret food bank stock-count spreadsheets for Provision.
 You only classify and group. You never calculate, estimate, total or fill in missing values.
 Reply with a single JSON object and nothing else.`;
 
@@ -324,7 +324,6 @@ async function interpretUpload(parsed, { filename, fileHash, cache = {}, columnO
       packSize: g.packSize,
       packSizeUnit: g.packSizeUnit,
       priority: catalog.defaultPriority(g.category),
-      unitCost: null,
       rawNames: g.rawNames,
       source: g.source,
       confidence: g.confidence,
@@ -422,7 +421,6 @@ function newProduct(products, { name, category, unit }) {
     unit: unit ? String(unit).trim().slice(0, 20) : null,
     ...catalog.packSizeFromName(name),
     priority: catalog.defaultPriority(cat),
-    unitCost: null,
     rawNames: [],
     source: 'manual',
     confidence: null,

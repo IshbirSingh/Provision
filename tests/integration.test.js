@@ -4,19 +4,26 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'supplyshield-app-'));
-process.env.SUPPLYSHIELD_DATA_FILE = path.join(dir, 'data.json');
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'provision-app-'));
+process.env.PROVISION_DATA_FILE = path.join(dir, 'data.json');
 process.env.SESSION_SECRET = 'test-secret';
 process.env.NEBIUS_API_KEY = ''; // deterministic rules path; no tokens used
 process.env.TAVILY_API_KEY = '';
-process.env.SUPPLYSHIELD_OFFLINE = '1';
+process.env.PROVISION_OFFLINE = '1';
 const { app, checkEngine } = require('../app');
 
 let server;
 let base;
 let cookie = '';
 
-const readData = () => JSON.parse(fs.readFileSync(process.env.SUPPLYSHIELD_DATA_FILE, 'utf8'));
+const readRoot = () => JSON.parse(fs.readFileSync(process.env.PROVISION_DATA_FILE, 'utf8'));
+const workspaceOf = (email) => {
+  const root = readRoot();
+  const [id] = Object.entries(root.users).find(([, u]) => u.email === email);
+  return root.workspaces[id];
+};
+// The workspace of the main test account.
+const readData = () => workspaceOf('sam@example.org');
 
 async function request(urlPath, { method = 'GET', form, json, body } = {}) {
   const res = await fetch(base + urlPath, {
@@ -80,10 +87,10 @@ test('signs up, creates the organisation and opens the overview', async () => {
   assert.equal(home.status, 200);
   assert.match(await home.text(), /Riverside Food Bank/);
 
-  const data = JSON.parse(fs.readFileSync(process.env.SUPPLYSHIELD_DATA_FILE, 'utf8'));
-  const [user] = Object.values(data.users);
+  const [user] = Object.values(readRoot().users);
   assert.equal(user.email, 'sam@example.org');
   assert.notEqual(user.passwordHash, 'correct horse');
+  const data = readData();
   assert.equal(data.organisation.planningHorizonDays, 14);
   assert.equal(data.organisation.storage.storage_01.capacityUnit, 'pallets');
 });
@@ -186,7 +193,7 @@ test('Step 2: analyses the approved data and drafts parameters', async () => {
   assert.equal(res.status, 200);
   const html = await res.text();
   assert.match(html, /Planning parameters/);
-  assert.match(html, /inferred consumption/);
+  assert.match(html, /Weekly demand is estimated from falls in stock/);
 
   const data = readData();
   assert.equal(Object.keys(data.analysis.products).length, 15);
@@ -268,6 +275,34 @@ test('Step 4: choosing a policy stores numbers, then a checked explanation', asy
   assert.match(html, /Confirm &amp; finalise plan/);
 });
 
+test('Step 2: storage capacity per product is worked out from the storage entered', async () => {
+  const p = readData().parameters;
+  assert.ok(p.capacity, 'capacity computed');
+  assert.ok(p.capacity.types.ambient.capacityLitres > 0, '40 pallets converted to litres');
+  const caps = Object.values(p.global.productCapacity).filter((c) => c !== null);
+  assert.ok(caps.length > 0);
+  for (const [id, c] of Object.entries(p.global.productCapacity)) {
+    if (c !== null) assert.ok(c >= p.products[id].currentStock, 'never below current stock');
+  }
+  assert.equal(p.global.deliverySuccessProbability, 1);
+});
+
+test('Step 5: fine-tuning re-runs only the chosen plan on the same futures', async () => {
+  const before = readData();
+  const standardTarget = before.simulation.policies.balanced.products.pasta_500g.target;
+  const res = await request('/plan/fine-tune', { method: 'POST', form: { level: '95' } });
+  assert.equal(res.headers.get('location'), '/plan');
+  const data = readData();
+  assert.equal(data.recommendations.fineTune.level, 0.95);
+  assert.ok(data.simulation.fineTuned.result.products.pasta_500g.target > standardTarget);
+  assert.equal(data.simulation.policies.balanced.products.pasta_500g.target, standardTarget, 'standard results kept for comparison');
+  assert.match(await (await request('/plan')).text(), /Balanced at 95%/);
+
+  await request('/plan/fine-tune', { method: 'POST', form: { level: '80' } });
+  assert.equal(readData().recommendations.fineTune, null, 'back to standard');
+  assert.equal(readData().simulation.fineTuned, undefined);
+});
+
 test('Step 5: finalising freezes an audit record that can be downloaded', async () => {
   const res = await request('/plan/finalise', { method: 'POST' });
   assert.equal(res.headers.get('location'), '/plan');
@@ -283,7 +318,7 @@ test('Step 5: finalising freezes an audit record that can be downloaded', async 
   assert.ok(record.policies.lean && record.policies.resilient, 'all three policies are kept');
 
   const html = await (await request('/plan')).text();
-  assert.match(html, /This plan is finalised/);
+  assert.match(html, /Finalised plan/);
   const dl = await request(`/plan/download?id=${record.id}`);
   assert.equal(JSON.parse(await dl.text()).id, record.id);
   assert.equal((await request(`/plan/print?id=${record.id}`)).status, 200);
@@ -307,6 +342,40 @@ test('signs out and requires sign-in again', async () => {
 test('rejects a wrong password', async () => {
   const res = await request('/login', { method: 'POST', form: { email: 'sam@example.org', password: 'wrong password' } });
   assert.equal(res.status, 401);
+});
+
+test('a new account gets its own empty workspace and can\'t see another account\'s data', async () => {
+  const samRecordId = readData().recommendations.recordId;
+  const res = await request('/signup', {
+    method: 'POST',
+    form: { name: 'Alex', email: 'alex@example.org', password: 'another pass', orgName: 'Hillside Pantry', postcode: 'M1 1AE', planningHorizonDays: '28' },
+  });
+  assert.equal(res.status, 302);
+
+  const home = await (await request('/')).text();
+  assert.match(home, /Hillside Pantry/);
+  assert.doesNotMatch(home, /Riverside Food Bank/);
+  assert.match(home, /No records yet/);
+
+  const alex = workspaceOf('alex@example.org');
+  assert.deepEqual(alex.products, {});
+  assert.deepEqual(alex.audit.records, {});
+  assert.equal((await request('/parameters')).headers.get('location'), '/upload', 'steps start locked');
+  assert.equal((await request(`/plan/download?id=${samRecordId}`)).status, 404, "another account's plan is not reachable");
+
+  // Work in this account leaves the first one untouched.
+  const samBefore = JSON.stringify(readData());
+  await request('/upload/sample', { method: 'POST' });
+  assert.equal(Object.keys(workspaceOf('alex@example.org').staging.records).length, 786);
+  assert.equal(JSON.stringify(readData()), samBefore);
+});
+
+test('signing back in returns to that account\'s own workspace', async () => {
+  await request('/logout', { method: 'POST' });
+  await request('/login', { method: 'POST', form: { email: 'sam@example.org', password: 'correct horse' } });
+  const home = await (await request('/')).text();
+  assert.match(home, /Riverside Food Bank/);
+  assert.match(home, /Finalised plans/);
 });
 
 test('reaches the Python engine through the bridge', async () => {

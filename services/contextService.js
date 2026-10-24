@@ -48,13 +48,13 @@ const WEATHER_CODES = [
 const addDays = (iso, n) => new Date(Date.parse(iso) + n * 86400000).toISOString().slice(0, 10);
 
 async function fetchJson(url) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), headers: { 'user-agent': 'SupplyShield/1.0' } });
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), headers: { 'user-agent': 'Provision/1.0' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
 async function fetchText(url) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), headers: { 'user-agent': 'SupplyShield/1.0' } });
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), headers: { 'user-agent': 'Provision/1.0' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
 }
@@ -142,6 +142,40 @@ async function weather(loc, horizonDays) {
   };
 }
 
+// Daily mean temperatures for the period the stock records cover, and for
+// the planning horizon. Used by Step 2 to measure whether temperature has
+// changed consumption in this food bank's own records.
+async function temperatures(loc, historyFrom, asOf, horizonDays) {
+  const archive = async (from, to) => {
+    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${loc.latitude}&longitude=${loc.longitude}`
+      + `&start_date=${from}&end_date=${to}&daily=temperature_2m_mean&timezone=Europe%2FLondon`;
+    const { daily } = await fetchJson(url);
+    return Object.fromEntries(daily.time.map((t, i) => [t, daily.temperature_2m_mean[i]]).filter(([, v]) => v !== null));
+  };
+  const forecastDays = Math.min(horizonDays, 16);
+  const [history, forecast] = await Promise.all([
+    archive(historyFrom, addDays(asOf, -1)),
+    fetchJson(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&daily=temperature_2m_mean&timezone=Europe%2FLondon&forecast_days=${forecastDays}`),
+  ]);
+  const horizon = forecast.daily.temperature_2m_mean.slice(0, forecastDays);
+  let note = `Forecast for all ${horizonDays} days.`;
+  if (horizonDays > forecastDays) {
+    // Beyond the 16-day forecast, use the same dates last year as a guide.
+    const lastYear = await archive(addDays(asOf, forecastDays - 365), addDays(asOf, horizonDays - 1 - 365));
+    horizon.push(...Object.values(lastYear).slice(0, horizonDays - forecastDays));
+    note = `Forecast for the first ${forecastDays} days; the same dates last year for the remaining ${horizonDays - forecastDays}.`;
+  }
+  return {
+    status: 'ok',
+    source: 'Open-Meteo historical weather and forecast',
+    historyFrom,
+    history,
+    horizon,
+    horizonNote: note,
+    horizonMean: horizon.length ? Math.round((horizon.reduce((s, x) => s + x, 0) / horizon.length) * 10) / 10 : null,
+  };
+}
+
 function rssItems(xml) {
   const items = [];
   for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
@@ -217,15 +251,15 @@ async function localSearch(loc) {
   };
 }
 
-async function gatherContext(organisation, { asOf, horizonDays }) {
-  // SUPPLYSHIELD_OFFLINE=1 skips every network source (tests, offline demos).
-  if (process.env.SUPPLYSHIELD_OFFLINE === '1') {
+async function gatherContext(organisation, { asOf, horizonDays, historyFrom = null }) {
+  // PROVISION_OFFLINE=1 skips every network source (tests, offline demos).
+  if (process.env.PROVISION_OFFLINE === '1') {
     const off = { status: 'unavailable', detail: 'Offline mode.' };
     return {
-      weather: { forecast: off, warnings: off },
+      weather: { forecast: off, warnings: off, temperatures: off },
       holidays: { bank: off, school: schoolHolidays(null, asOf, horizonDays) },
       deprivation: off,
-      other: { fetchedAt: new Date().toISOString(), asOf, horizonDays, postcode: organisation.postcode, location: off, benefits: off, localSearch: off },
+      other: { fetchedAt: new Date().toISOString(), asOf, horizonDays, historyFrom, postcode: organisation.postcode, location: off, benefits: off, localSearch: off },
     };
   }
 
@@ -239,21 +273,23 @@ async function gatherContext(organisation, { asOf, horizonDays }) {
 
   const loc = organisation.postcode ? await settle(() => location(organisation.postcode)) : { status: 'unavailable', detail: 'No postcode set.' };
   const okLoc = loc.status === 'ok' ? loc : null;
-  const [bank, forecast, warnings, search] = await Promise.all([
+  const [bank, forecast, warnings, search, temps] = await Promise.all([
     settle(() => bankHolidays(okLoc, asOf, horizonDays)),
     okLoc ? settle(() => weather(okLoc, horizonDays)) : unavailable(new Error('Needs a location.')),
     settle(() => weatherWarnings(okLoc)),
     settle(() => localSearch(okLoc)),
+    okLoc && historyFrom ? settle(() => temperatures(okLoc, historyFrom, asOf, horizonDays)) : unavailable(new Error(historyFrom ? 'Needs a location.' : 'No stock records yet.')),
   ]);
 
   return {
-    weather: { forecast, warnings },
+    weather: { forecast, warnings, temperatures: temps },
     holidays: { bank, school: schoolHolidays(okLoc, asOf, horizonDays) },
     deprivation: okLoc ? deprivation(okLoc) : unavailable(new Error('Needs a location.')),
     other: {
       fetchedAt: new Date().toISOString(),
       asOf,
       horizonDays,
+      historyFrom,
       postcode: organisation.postcode,
       location: loc,
       benefits: benefits(bank, asOf, horizonDays),
@@ -262,10 +298,10 @@ async function gatherContext(organisation, { asOf, horizonDays }) {
   };
 }
 
-function isFresh(context, organisation, horizonDays) {
+function isFresh(context, organisation, horizonDays, historyFrom = null) {
   const o = context?.other;
   if (!o?.fetchedAt) return false;
-  if (o.postcode !== organisation.postcode || o.horizonDays !== horizonDays) return false;
+  if (o.postcode !== organisation.postcode || o.horizonDays !== horizonDays || (o.historyFrom ?? null) !== historyFrom) return false;
   return Date.now() - Date.parse(o.fetchedAt) < CACHE_HOURS * 3600 * 1000;
 }
 

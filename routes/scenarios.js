@@ -74,7 +74,7 @@ router.post('/scenario', requireStep('scenario'), async (req, res) => {
   }
 
   // Save the scenario (clears old results), then simulate from the saved state.
-  const saved = await storage.mutate((d) => {
+  const saved = await req.store.mutate((d) => {
     storage.applyInvalidation(d, 'scenario');
     d.scenario = parsed.scenario;
   });
@@ -89,7 +89,7 @@ router.post('/scenario', requireStep('scenario'), async (req, res) => {
     return res.redirect('/scenario');
   }
 
-  await storage.mutate((d) => {
+  await req.store.mutate((d) => {
     d.simulation = {
       seed: payload.config.randomSeed,
       runs: payload.config.numberOfRuns,
@@ -129,7 +129,7 @@ router.post('/compare/select', requireStep('compare'), async (req, res) => {
     req.session.flash = { type: 'error', message: 'Choose Lean, Balanced or Resilient.' };
     return res.redirect('/compare');
   }
-  const current = await storage.loadData();
+  const current = await req.store.loadData();
   if (!plan.simulationIsCurrent(current)) {
     req.session.flash = { type: 'error', message: 'These results are out of date. Run the comparison again.' };
     return res.redirect('/scenario');
@@ -139,27 +139,14 @@ router.post('/compare/select', requireStep('compare'), async (req, res) => {
     return res.redirect('/plan');
   }
 
-  const stored = await storage.mutate((d) => {
+  const stored = await req.store.mutate((d) => {
     storage.applyInvalidation(d, 'policy');
+    delete d.simulation.fineTuned; // a newly chosen policy starts from its standard level
     d.recommendations = plan.buildRecommendation(d, policy);
     d.metadata.currentStep = 5;
   });
 
-  // Explanations are cached with the simulation, so switching back to a
-  // policy with unchanged results doesn't call Nebius again.
-  const facts = explanation.buildFacts(stored.recommendations, stored.simulation, stored.parameters.global.reviewPeriodDays);
-  const hash = explanation.factsHash(facts);
-  const cached = stored.simulation.explanationCache?.[policy];
-  const actionPlan = cached?.factsHash === hash ? cached : await explanation.generate('action', facts);
-
-  await storage.mutate((d) => {
-    // Only attach text to the calculation it was written for.
-    if (d.simulation.calculationVersion !== stored.recommendations.calculationVersion) return;
-    d.simulation.explanationCache = { ...(d.simulation.explanationCache || {}), [policy]: actionPlan };
-    if (d.recommendations.calculationVersion === stored.recommendations.calculationVersion && d.recommendations.selectedPolicy === policy) {
-      d.recommendations.explanations = { actionPlan };
-    }
-  });
+  await explanation.attachActionPlan(req.store, stored);
   res.redirect('/plan');
 });
 

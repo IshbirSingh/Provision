@@ -7,7 +7,7 @@
 
 const crypto = require('crypto');
 const nebius = require('./nebiusService');
-const { POLICY_LABELS, SCENARIOS } = require('./planService');
+const { POLICY_LABELS, SCENARIOS, policyResult } = require('./planService');
 
 const pct = (p) => (p === null || p === undefined ? null : `${Math.round(p * 100)}%`);
 const int = (x) => (x === null || x === undefined ? null : Math.round(x));
@@ -32,7 +32,21 @@ function scenarioLines(cfg) {
 
 // Deterministic statements comparing the selected policy with the others, so
 // the model doesn't have to (and isn't allowed to) make its own comparisons.
-function comparisons(selected, sim) {
+// Label for the selected plan, e.g. "Balanced" or "Balanced at 90%".
+function selectedLabel(rec) {
+  const base = POLICY_LABELS[rec.selectedPolicy];
+  return rec.fineTune ? `${base} at ${Math.round(rec.fineTune.level * 100)}%` : base;
+}
+
+// The other plans to compare against: the other two policies, plus the
+// standard version of the selected one when it has been fine-tuned.
+function otherPlans(rec) {
+  return Object.keys(POLICY_LABELS)
+    .filter((p) => p !== rec.selectedPolicy || rec.fineTune)
+    .map((p) => [p, p === rec.selectedPolicy ? `${POLICY_LABELS[p]} (standard)` : POLICY_LABELS[p]]);
+}
+
+function comparisons(rec, sim) {
   const measures = [
     ['requests', 'units now', (t) => t.initialOrder, (x) => String(x)],
     ['expected unmet demand of', 'units', (t) => t.expectedUnmet, (x) => String(int(x))],
@@ -41,15 +55,16 @@ function comparisons(selected, sim) {
     ['expected stock at the end of', 'units', (t) => t.expectedEnding, (x) => String(int(x))],
   ];
   const out = [];
-  const me = sim.policies[selected].totals;
-  for (const other of Object.keys(POLICY_LABELS).filter((p) => p !== selected)) {
+  const me = policyResult(sim, rec.selectedPolicy).totals;
+  const mine = selectedLabel(rec);
+  for (const [other, label] of otherPlans(rec)) {
     const them = sim.policies[other].totals;
     for (const [what, unit, get, fmt] of measures) {
       const a = fmt(get(me));
       const b = fmt(get(them));
       if (a === null || b === null) continue;
       const relation = a === b ? 'the same as' : get(me) > get(them) ? 'higher than' : 'lower than';
-      out.push(`${POLICY_LABELS[selected]} has ${what} ${a}${unit ? ' ' + unit : ''}, ${relation} ${POLICY_LABELS[other]} (${b}).`.replace('has requests', 'requests'));
+      out.push(`${mine} has ${what} ${a}${unit ? ' ' + unit : ''}, ${relation} ${label} (${b}).`.replace('has requests', 'requests'));
     }
   }
   return out;
@@ -58,8 +73,7 @@ function comparisons(selected, sim) {
 function buildFacts(rec, sim, reviewPeriodDays) {
   const cfg = sim.config;
   const rows = rec.order.map((id) => rec.products[id]);
-  const totals = (p) => {
-    const t = sim.policies[p].totals;
+  const totals = (t) => {
     return {
       requestNowUnits: t.initialOrder,
       expectedUnmetUnits: int(t.expectedUnmet),
@@ -71,8 +85,8 @@ function buildFacts(rec, sim, reviewPeriodDays) {
     };
   };
   return {
-    selectedPolicy: POLICY_LABELS[rec.selectedPolicy],
-    otherPolicies: Object.keys(POLICY_LABELS).filter((p) => p !== rec.selectedPolicy).map((p) => POLICY_LABELS[p]),
+    selectedPolicy: selectedLabel(rec),
+    otherPolicies: otherPlans(rec).map(([, label]) => label),
     planningHorizonDays: cfg.planningHorizonDays,
     orderReviewEveryDays: reviewPeriodDays,
     simulatedFutures: cfg.numberOfRuns,
@@ -93,10 +107,14 @@ function buildFacts(rec, sim, reviewPeriodDays) {
       typicalDayShortageStarts: r.medianFirstShortageDay,
       expiringSoon: r.expiring.quantity ? { quantity: r.expiring.quantity, earliestBestBefore: longDate(r.expiring.earliestDate) } : null,
       expectedWaste: r.expectedWaste === null ? 'insufficient data' : int(r.expectedWaste),
-      otherPolicies: Object.fromEntries(Object.entries(r.alternatives).map(([p, a]) => [POLICY_LABELS[p], { requestNow: a.replenish, chanceOfShortage: pct(a.shortageRisk) }])),
+      whyShortageRiskIsHigh: r.riskReasons?.length ? r.riskReasons : null,
+      otherPolicies: Object.fromEntries(Object.entries(r.alternatives).map(([p, a]) => [p === rec.selectedPolicy ? `${POLICY_LABELS[p]} (standard)` : POLICY_LABELS[p], { requestNow: a.replenish, chanceOfShortage: pct(a.shortageRisk) }])),
     })),
-    policyTotals: Object.fromEntries(Object.keys(POLICY_LABELS).map((p) => [POLICY_LABELS[p], totals(p)])),
-    comparisons: comparisons(rec.selectedPolicy, sim),
+    policyTotals: Object.fromEntries([
+      [selectedLabel(rec), totals(policyResult(sim, rec.selectedPolicy).totals)],
+      ...otherPlans(rec).map(([p, label]) => [label, totals(sim.policies[p].totals)]),
+    ]),
+    comparisons: comparisons(rec, sim),
     warnings: rec.summary.warnings,
     assumptions: sim.assumptions,
   };
@@ -249,7 +267,7 @@ function templateActionPlan(facts) {
       ...rows.filter((r) => r.urgency === 'act_now').map((r) => `${r.product} has a ${r.chanceOfRunningOutBeforeFirstDelivery} chance of running out before any delivery can arrive. Look for stock you can get sooner.`),
     ],
     immediatePriorities: [
-      ...urgent.map((r) => `${r.product} (${r.priority}): ${r.chanceOfShortage} chance of a shortage over the ${facts.planningHorizonDays} days.`),
+      ...urgent.map((r) => `${r.product} (${r.priority}): ${r.chanceOfShortage} chance of a shortage over the ${facts.planningHorizonDays} days.${r.whyShortageRiskIsHigh ? ' ' + r.whyShortageRiskIsHigh[0] : ''}`),
       ...expiring.map((r) => `${r.product}: ${units(r.expiringSoon.quantity, r.unit)} reach their best-before date by ${r.expiringSoon.earliestBestBefore}. Distribute these first.`),
     ].slice(0, 8),
     risksAndTradeoffs: [
@@ -271,7 +289,7 @@ function templateFinalPlan(facts) {
   return {
     request: rows.filter((r) => r.requestNow > 0).map((r) => `${r.product}: ${units(r.requestNow, r.unit)}.`).concat(rows.some((r) => r.requestNow > 0) ? [] : ['Nothing to request now.']),
     prioritise: rows.filter((r) => r.priority !== 'standard' && (r.urgency === 'act_now' || r.urgency === 'high'))
-      .map((r) => `${r.product} (${r.priority}): ${r.chanceOfShortage} chance of a shortage${r.urgency === 'act_now' ? `, and ${r.chanceOfRunningOutBeforeFirstDelivery} chance of running out before the first delivery` : ''}.`)
+      .map((r) => `${r.product} (${r.priority}): ${r.chanceOfShortage} chance of a shortage.${r.whyShortageRiskIsHigh ? ' ' + r.whyShortageRiskIsHigh[0] : ''}`)
       .concat(rows.some((r) => r.urgency === 'act_now' || r.urgency === 'high') ? [] : ['No critical or essential item has a high shortage risk under this plan.']),
     distributeFirst: rows.filter((r) => r.expiringSoon).map((r) => `${r.product}: ${units(r.expiringSoon.quantity, r.unit)} with best-before by ${r.expiringSoon.earliestBestBefore}.`)
       .concat(rows.some((r) => r.expiringSoon) ? [] : ['No current stock reaches its best-before date within the horizon.']),
@@ -302,7 +320,7 @@ Each item is one sentence of at most 35 words. Reply with one JSON object only.`
 const ACTION_TASK = {
   whatToRequest: 'Products to request now, with the exact requestNow quantities and units. Skip products with requestNow 0.',
   whenToAct: 'One or two full sentences on when to act, using only "today", earliestDeliveryDay, orderReviewEveryDays and typicalDayShortageStarts.',
-  immediatePriorities: 'Critical and essential shortage risks and items expiring soon.',
+  immediatePriorities: 'Critical and essential shortage risks and items expiring soon. For any high chance of shortage, give the reason from whyShortageRiskIsHigh.',
   risksAndTradeoffs: 'How the selected policy differs from the other two, using policyTotals.',
   contingency: 'What to consider if the scenario conditions happen. Only actions supported by the facts.',
   tradeoffSummary: 'Exactly one item: two or three sentences on the main trade-offs of the selected policy.',
@@ -310,7 +328,7 @@ const ACTION_TASK = {
 
 const FINAL_TASK = {
   request: 'Exact products and requestNow quantities. Skip products with requestNow 0.',
-  prioritise: 'Critical shortages and essential items to protect first.',
+  prioritise: 'Critical shortages and essential items to protect first, with the reason from whyShortageRiskIsHigh where given.',
   distributeFirst: 'Stock approaching its best-before date (expiringSoon).',
   maintain: 'Emergency reserves (emergencyReserve) for critical and essential items.',
   monitor: 'Important assumptions and disruption risks to watch.',
@@ -361,4 +379,22 @@ async function generate(kind, facts) {
   }
 }
 
-module.exports = { buildFacts, factsHash, generate, checkSentence, allowedFrom, templateActionPlan, templateFinalPlan, ACTION_KEYS, FINAL_KEYS };
+// Write (or reuse) the action plan for the stored recommendation and attach
+// it, only if the recommendation is still the one it was written for.
+async function attachActionPlan(store, stored) {
+  const rec = stored.recommendations;
+  const facts = buildFacts(rec, stored.simulation, stored.parameters.global.reviewPeriodDays);
+  const key = rec.fineTune ? `${rec.selectedPolicy}@${rec.fineTune.level}` : rec.selectedPolicy;
+  const cached = stored.simulation.explanationCache?.[key];
+  const actionPlan = cached?.factsHash === factsHash(facts) ? cached : await generate('action', facts);
+
+  await store.mutate((d) => {
+    if (d.simulation.calculationVersion !== rec.calculationVersion) return;
+    d.simulation.explanationCache = { ...(d.simulation.explanationCache || {}), [key]: actionPlan };
+    const same = d.recommendations.calculationVersion === rec.calculationVersion && d.recommendations.selectedPolicy === rec.selectedPolicy
+      && JSON.stringify(d.recommendations.fineTune ?? null) === JSON.stringify(rec.fineTune ?? null);
+    if (same) d.recommendations.explanations = { actionPlan };
+  });
+}
+
+module.exports = { attachActionPlan, buildFacts, factsHash, generate, checkSentence, allowedFrom, templateActionPlan, templateFinalPlan, ACTION_KEYS, FINAL_KEYS };

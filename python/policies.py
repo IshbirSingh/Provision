@@ -3,6 +3,11 @@
 Order-up-to targets from quantiles of demand over the protection horizon,
 using inventory position (on hand + on order) and optional capacity caps.
 
+Each policy aims for a chance of running out over the whole planning
+horizon (Lean about 40%, Balanced 25%, Resilient 5-10% by priority). With
+k order cycles in the horizon, a per-cycle quantile q gives roughly
+P(no shortage) = q^k, so q = (1 - P)^(1/k).
+
 Protection horizon h = lead time + order review period, the same convention
 for every policy. Lean and Balanced plan on the approved lead time;
 Resilient also plans for the scenario's extra delivery delay (spec 5.4).
@@ -10,33 +15,66 @@ Targets come from the exact horizon-demand distribution, never from the
 Monte Carlo runs being evaluated (spec 5.6).
 """
 
+import math
+
 import numpy as np
 
 import demand_model
 
 POLICY_IDS = ("lean", "balanced", "resilient")
-METHOD = "order_up_to_horizon_quantile_v1"
+METHOD = "order_up_to_horizon_risk_target_v2"
+
+# Target chance of running out at least once over the planning horizon.
+RISK_TARGETS = {
+    "lean": 0.40,
+    "balanced": 0.25,
+    "resilient": {"critical": 0.05, "essential": 0.08, "standard": 0.10},
+}
 
 DESCRIPTIONS = {
-    "lean": "Orders up to the median of demand over the lead time and order period. Holds the least stock.",
-    "balanced": "Orders up to a higher quantile of demand, and to at least the emergency reserve in Safety First.",
-    "resilient": "Orders up to a high quantile set by priority, plans for any extra delivery delay and keeps at least the emergency reserve in Safety First.",
+    "lean": "Holds the least stock. Aims for about a 40% chance of running out over the plan.",
+    "balanced": "Aims for about a 25% chance of running out over the plan.",
+    "resilient": "Holds the most stock and plans for late deliveries. Aims for 5-10% depending on priority.",
 }
 
 
-def targets(states, ids, priorities, review_days, quantiles):
-    """Per-policy target T_i, protection horizon h_i and quantile q_i."""
+def risk_targets_for(policy, level=None):
+    """Target horizon shortage chance per priority. `level` fine-tunes a
+    policy as a protection level (1 - chance of running out): for Lean and
+    Balanced it applies to every product; for Resilient it is the critical
+    level, with essential and standard moved by the same amount."""
+    if policy == "resilient":
+        base = dict(RISK_TARGETS["resilient"])
+        if level is not None:
+            shift = (1 - level) - base["critical"]
+            base = {k: min(0.5, max(0.005, v + shift)) for k, v in base.items()}
+        return base
+    p = RISK_TARGETS[policy] if level is None else 1 - level
+    return {"critical": p, "essential": p, "standard": p}
+
+
+def cycle_quantile(risk, cycles):
+    """Per-cycle quantile giving roughly `risk` chance of a shortage over
+    `cycles` independent order cycles."""
+    return min(0.9995, (1 - risk) ** (1 / max(1, cycles)))
+
+
+def targets(states, ids, priorities, review_days, horizon_days, levels=None):
+    """Per-policy target T_i, protection horizon h_i and quantile q_i.
+    `levels` optionally fine-tunes one or more policies (see risk_targets_for)."""
+    levels = levels or {}
+    cycles = math.ceil(horizon_days / review_days)
     out = {}
     for policy in POLICY_IDS:
+        risks = risk_targets_for(policy, levels.get(policy))
         T, H, Q, reserve_binding = [], [], [], []
         for pid in ids:
             s = states[pid]
+            q = cycle_quantile(risks[priorities[pid]], cycles)
             if policy == "resilient":
                 h = s["leadTimeDisrupted"] + review_days
-                q = quantiles["resilient"][priorities[pid]]
             else:
                 h = s["leadTime"] + review_days
-                q = quantiles["lean"] if policy == "lean" else quantiles["balanced"]
             t = demand_model.horizon_quantile(s["mu"], s["alpha"], h, q)
             binding = False
             if policy != "lean" and s["reserveUnits"] is not None and s["reserveUnits"] > t:
@@ -50,6 +88,10 @@ def targets(states, ids, priorities, review_days, quantiles):
             "horizon": np.array(H, dtype=np.int64),
             "quantile": Q,
             "reserveBinding": reserve_binding,
+            "riskTarget": risks,
+            "level": {k: round(1 - v, 4) for k, v in risks.items()},
+            "cycles": cycles,
+            "fineTuned": policy in levels,
         }
     return out
 
