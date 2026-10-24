@@ -62,8 +62,10 @@ p { margin: 0 0 1em; }
 /* Header */
 .site-header { border-bottom: 4px solid var(--accent); }
 .site-header__inner { display: flex; align-items: center; gap: 16px; min-height: 56px; flex-wrap: wrap; }
-.wordmark { font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
-.wordmark:hover { color: var(--text); text-decoration: underline; }
+.wordmark { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.2rem; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+.wordmark__logo { color: var(--accent); flex: none; }
+.wordmark:hover { color: var(--text); }
+.wordmark:hover span { text-decoration: underline; }
 .site-header__org { color: var(--muted); padding-left: 16px; border-left: 1px solid var(--border); }
 .site-header__links { margin-left: auto; display: flex; gap: 16px; align-items: center; }
 

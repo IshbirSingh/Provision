@@ -11,7 +11,17 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap site-header__inner">
-    <a class="wordmark" href="/">Provision</a>
+    <a class="wordmark" href="/">
+      <svg class="wordmark__logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4c-1 1.5 1 2.5 0 4M16 3c-1 1.5 1 2.5 0 4M21 4c-1 1.5 1 2.5 0 4"/>
+          <path d="M6 11h20c0 5-4.5 8.5-10 8.5S6 16 6 11z"/>
+          <path d="M3 22.5c2-.8 4.2-.8 6 .2l5 2.3h6.5a1.8 1.8 0 0 1 0 3.6H13"/>
+          <path d="M20.5 25l6.5-3.3a1.8 1.8 0 0 1 1.7 3.1L20 30H9.5L3 27.5"/>
+        </g>
+      </svg>
+      <span>Provision</span>
+    </a>
     <% if (user) { %>
       <% if (organisation && organisation.name) { %><span class="site-header__org"><%= organisation.name %></span><% } %>
       <nav class="site-header__links" aria-label="Account">
