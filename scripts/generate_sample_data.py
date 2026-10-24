@@ -1,12 +1,12 @@
 """Generate the fictional 12-month sample dataset for SupplyShield.
 
-Outputs (fixed seed, so re-running gives identical files):
+Output (fixed seed, so re-running gives identical files):
   data/sample/sample_stock_history.csv  - weekly stock counts as a food bank
                                            might keep them (UK dates, name
                                            variants, notes, a few gaps)
-  data/sample/seed.json                 - the same data cleaned into the
-                                           data.json schema; used by
-                                           "Reset to sample data"
+
+Then run `node scripts/build_seed.js` to rebuild seed.json and the XLSX copy
+through the app's own Step 1 pipeline.
 
 All figures are invented. The dynamics are built so that scenarios and
 policies produce visibly different results: seasonal peaks around school
@@ -17,7 +17,6 @@ Usage: .venv/Scripts/python scripts/generate_sample_data.py
 """
 
 import csv
-import json
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -216,9 +215,7 @@ def main():
     add_irregular_events(histories)
 
     spec_by_id = {s[0]: s for s in PRODUCTS}
-    rows, seed_history, seed_inventory = [], {}, {}
-    rec_n = 0
-    batch_n = 0
+    rows = []
 
     for pid, history in histories.items():
         _, sheet_name, category, unit, *_ = spec_by_id[pid]
@@ -248,27 +245,8 @@ def main():
             if is_last:
                 for bqty, expiry in batches_for(pid, qty):
                     rows.append([uk(count_date), name, cat_label, bqty, unit, uk(date.fromisoformat(expiry)) if expiry else "", note])
-                    batch_n += 1
-                    seed_inventory[f"batch_{batch_n:03d}"] = {
-                        "productId": pid,
-                        "quantity": bqty,
-                        "snapshotDate": SNAPSHOT.isoformat(),
-                        "expiryDate": expiry,
-                        "expiryType": "best_before" if expiry else None,
-                    }
             else:
                 rows.append([uk(count_date), name, cat_label, qty_text, unit, "", note])
-
-            if not missing:
-                rec_n += 1
-                seed_history[f"record_{rec_n:04d}"] = {
-                    "productId": pid,
-                    "date": count_date.isoformat(),
-                    "quantity": qty,
-                    "unit": unit,
-                    "note": note or None,
-                    "source": "sample_dataset",
-                }
 
     # Sheet order: by count date, then item - as a stock-take log would be.
     rows.sort(key=lambda r: (r[0][6:] + r[0][3:5] + r[0][:2], r[1].lower()))
@@ -278,34 +256,7 @@ def main():
         writer.writerow(["Date Counted", "Item", "Category", "Qty", "Unit", "Best Before", "Notes"])
         writer.writerows(rows)
 
-    products = {
-        pid: {
-            "name": sheet_name,
-            "category": category,
-            "unit": unit,
-            "packSize": pack,
-            "packSizeUnit": pack_unit,
-            "priority": priority,
-            "unitCost": None,
-        }
-        for pid, sheet_name, category, unit, pack, pack_unit, priority, *_ in PRODUCTS
-    }
-    seed = {
-        "products": products,
-        "historicalStock": seed_history,
-        "inventory": seed_inventory,
-        "staging": {
-            "sourceFile": "sample_stock_history.csv",
-            "extractedAt": None,
-            "columnMapping": {},
-            "records": {},
-            "warnings": {},
-        },
-    }
-    with open(OUT_DIR / "seed.json", "w", encoding="utf-8") as f:
-        json.dump(seed, f, indent=2)
-
-    print(f"{len(rows)} CSV rows, {len(products)} products, {len(seed_history)} records, {len(seed_inventory)} batches")
+    print(f"{len(rows)} CSV rows for {len(PRODUCTS)} products. Now run: node scripts/build_seed.js")
 
 
 if __name__ == "__main__":

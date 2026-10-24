@@ -1,5 +1,54 @@
 <%- include('partials/head', { title }) %>
 <p class="eyebrow">Step 1 of 5</p>
 <h1>Upload stock records</h1>
-<p class="notice notice--info">This step hasn't been built yet.</p>
-<%- include('partials/foot') %>
+<p class="lead">Upload your stock counts, ideally the last 12 months. SupplyShield reads the columns, groups product names and flags anything missing or unclear. You check everything before it is used.</p>
+
+<% if (error) { %><div class="notice notice--error" role="alert"><%= error %></div><% } %>
+
+<% if (pending) { %>
+  <div class="notice notice--warning">
+    <p><strong>An upload is waiting for review</strong><%= pending.sourceFile ? `: ${pending.sourceFile}` : '' %> (<%= pending.rows %> rows).</p>
+    <p><a href="/review">Continue reviewing</a>. Uploading another file will replace it.</p>
+  </div>
+<% } %>
+
+<% if (approved.records) { %>
+  <div class="notice notice--success">
+    <p><strong>Approved data in use:</strong> <%= approved.records %> stock counts for <%= approved.products %> products, <%= approved.from %> to <%= approved.to %><%= approved.sourceFile ? ` (from ${approved.sourceFile})` : '' %>. Input version <%= approved.version %>.</p>
+    <p>A new upload replaces this only once you approve it, and clears the parameters and results that depend on it.</p>
+    <p><a href="/parameters">Go to parameters</a></p>
+  </div>
+<% } %>
+
+<section class="section">
+  <h2>Upload a file</h2>
+  <p>A CSV or Excel file with one row per product per count. You need a date, a product name and a quantity. Best-before dates, units, categories and notes help if you have them. Column names don't need to match any template.</p>
+  <form method="post" action="/upload" enctype="multipart/form-data" class="form" data-busy="Reading file…">
+    <div class="field">
+      <label for="file">Stock file (.csv or .xlsx, up to 5 MB)</label>
+      <input id="file" name="file" type="file" accept=".csv,.xlsx,.xls" required>
+    </div>
+    <button type="submit" class="button">Upload and read file</button>
+  </form>
+</section>
+
+<section class="section">
+  <h2>Use the sample file</h2>
+  <p>52 weekly counts for 15 products at a fictional food bank, with the inconsistencies real records have: mixed product names, missing counts, an approximate entry and notes about transfers.</p>
+  <div class="button-row">
+    <form method="post" action="/upload/sample" class="inline-form" data-busy="Reading sample…">
+      <button type="submit" class="button button--secondary">Use sample file</button>
+    </form>
+    <a href="/sample/sample_stock_history.csv">Download CSV</a>
+    <a href="/sample/sample_stock_history.xlsx">Download Excel</a>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Enter counts by hand</h2>
+  <p>Start with an empty table and add products and counts yourself.</p>
+  <form method="post" action="/upload/manual" class="inline-form">
+    <button type="submit" class="button button--secondary">Start an empty table</button>
+  </form>
+</section>
+<%- include('partials/foot', { scripts: ['/js/upload.js'] }) %>

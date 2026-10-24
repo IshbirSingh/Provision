@@ -17,8 +17,8 @@
     </div>
     <div class="field">
       <label for="planningHorizonDays">Planning horizon (days)</label>
-      <span class="hint">How far ahead each plan looks.</span>
-      <input id="planningHorizonDays" name="planningHorizonDays" type="number" min="1" max="90" class="input--short" value="<%= org.planningHorizonDays || 7 %>" required>
+      <span class="hint">How far ahead each plan looks. Make it longer than your usual delivery lead time.</span>
+      <input id="planningHorizonDays" name="planningHorizonDays" type="number" min="1" max="90" class="input--short" value="<%= org.planningHorizonDays || 28 %>" required>
     </div>
   </div>
 </fieldset>

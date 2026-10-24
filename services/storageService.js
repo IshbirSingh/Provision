@@ -30,7 +30,7 @@ function defaultData() {
     organisation: {
       name: null,
       postcode: null,
-      planningHorizonDays: 7,
+      planningHorizonDays: 28,
       storage: {},
       storageNotes: null,
       budget: { amount: null, currency: 'GBP', period: null },
@@ -41,12 +41,17 @@ function defaultData() {
     products: {},
     inventory: {},
     historicalStock: {},
+    // Step 1 work area: extracted records awaiting review. Not authoritative
+    // until approved. aiCache keeps Nebius answers so re-uploads are free.
     staging: {
       sourceFile: null,
       extractedAt: null,
+      method: null,
       columnMapping: {},
+      products: {},
       records: {},
       warnings: {},
+      aiCache: {},
     },
     analysis: {
       products: {},
@@ -86,6 +91,7 @@ function defaultData() {
       inputVersion: 1,
       calculationVersion: null,
       warnings: {},
+      datasets: {},
       records: {},
     },
   };
@@ -325,7 +331,8 @@ function invalidate(change) {
 }
 
 // Reset the workspace to the preloaded sample dataset (or empty defaults if
-// no seed exists yet). Accounts and the organisation profile are kept.
+// no seed exists yet). Accounts, the organisation profile and finalised
+// recommendation records are kept, and the input version keeps increasing.
 function resetDemoData() {
   return mutate(async (data) => {
     const fresh = defaultData();
@@ -333,11 +340,24 @@ function resetDemoData() {
     if (fsSync.existsSync(SEED_FILE)) {
       seed = JSON.parse(await fs.readFile(SEED_FILE, 'utf8'));
     }
+    const keptRecords = data.audit.records || {};
+    const keptCache = data.staging.aiCache || {};
+    const version = (data.audit.inputVersion || 0) + 1;
+
     for (const section of WORKFLOW_SECTIONS) {
       data[section] = section in seed ? structuredClone(seed[section]) : fresh[section];
     }
-    data.audit.inputVersion = 1;
-    data.metadata.currentStep = 1;
+    fillMissing(data, fresh);
+
+    const seedDatasets = Object.values(seed.audit?.datasets || {});
+    data.audit.datasets = {};
+    if (seedDatasets.length) {
+      data.audit.datasets[`dataset_v${version}`] = { ...seedDatasets[0], version, approvedAt: new Date().toISOString() };
+    }
+    data.audit.inputVersion = version;
+    data.audit.records = keptRecords;
+    data.staging.aiCache = keptCache;
+    data.metadata.currentStep = Object.keys(data.historicalStock).length ? 2 : 1;
   });
 }
 

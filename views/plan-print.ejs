@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= record.organisation.name %> replenishment plan – SupplyShield</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="print-page">
+<%
+  const R = record.recommendation;
+  const rows = R.order.map((id) => R.products[id]);
+  const pc = (x) => x === null || x === undefined ? '–' : `${Math.round(x * 100)}%`;
+  const n0 = (x) => x === null || x === undefined ? '–' : Math.round(x).toLocaleString('en-GB');
+  const longDate = (iso) => iso ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+  const fp = record.explanations.finalPlan;
+%>
+<main class="wrap main">
+  <p class="no-print"><a href="/">Overview</a> · <a href="/plan">Current plan</a> · <a href="/plan/download?id=<%= record.id %>">Download JSON</a> · <button type="button" class="link-button" onclick="window.print()">Print</button></p>
+  <h1><%= record.organisation.name %>: replenishment plan</h1>
+  <p>
+    <strong><%= labels[record.selectedPolicy] %></strong> policy · <%= record.scenarioLabel %> · <%= record.scenario.planningHorizonDays %>-day horizon ·
+    finalised <%= new Date(record.createdAt).toLocaleString('en-GB') %> by <%= record.createdBy?.name || 'a manager' %>.<br>
+    Record <code><%= record.id %></code> · calculation <code><%= record.calculation.calculationVersion %></code> · seed <%= record.calculation.seed %>, <%= record.calculation.runs.toLocaleString('en-GB') %> simulated futures.
+  </p>
+
+  <% if (fp) { %>
+  <h2>Action plan</h2>
+  <% for (const [key, label] of [['request', 'Request'], ['prioritise', 'Prioritise'], ['distributeFirst', 'Distribute first'], ['maintain', 'Maintain'], ['monitor', 'Monitor']]) { if (!fp.sections[key]?.length) continue; %>
+    <h3><%= label %></h3>
+    <ul><% for (const s of fp.sections[key]) { %><li><%= s %></li><% } %></ul>
+  <% } %>
+  <% } %>
+
+  <h2>Recommendations</h2>
+  <table class="table">
+    <thead><tr><th>Product</th><th>Priority</th><th class="num">Current stock</th><th class="num">Expected demand</th><th class="num">Replenish</th><th class="num">Reserve</th><th class="num">Shortage risk</th><th>Expiry warning</th></tr></thead>
+    <tbody>
+      <% for (const r of rows) { %>
+      <tr>
+        <td><%= r.name %> (<%= r.unit || 'units' %>)<%= r.urgency !== 'normal' ? ` – ${urgency[r.urgency].label}` : '' %></td>
+        <td><%= r.priority %></td>
+        <td class="num"><%= n0(r.currentStock) %></td>
+        <td class="num"><%= n0(r.expectedDemand) %></td>
+        <td class="num"><strong><%= r.replenish ? n0(r.replenish) : '–' %></strong></td>
+        <td class="num"><%= n0(r.emergencyReserve) %></td>
+        <td class="num"><%= pc(r.shortageRisk) %></td>
+        <td><%= r.expiring.quantity ? `${n0(r.expiring.quantity)} by ${longDate(r.expiring.earliestDate)}` : '–' %></td>
+      </tr>
+      <% } %>
+    </tbody>
+  </table>
+  <p class="hint">Shortage risk and expected figures are estimates from simulation, not guarantees. Demand is inferred from stock counts.</p>
+
+  <h2>Assumptions</h2>
+  <ul><% for (const a of record.assumptions) { %><li><%= a %></li><% } %></ul>
+</main>
+</body>
+</html>

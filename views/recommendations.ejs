@@ -1,5 +1,277 @@
 <%- include('partials/head', { title }) %>
+<%
+  const R = record.recommendation;
+  const S = R.summary;
+  const P = ['lean', 'balanced', 'resilient'];
+  const policy = record.selectedPolicy;
+  const cfg = record.scenario;
+  const g = record.parameters.global;
+  const rows = R.order.map((id) => R.products[id]);
+  const n0 = (x) => x === null || x === undefined ? null : Math.round(x).toLocaleString('en-GB');
+  const n1 = (x) => x === null || x === undefined ? null : Number(x).toLocaleString('en-GB', { maximumFractionDigits: 1 });
+  const pc = (x) => x === null || x === undefined ? null : `${Math.round(x * 100)}%`;
+  const gbp = (x) => x === null || x === undefined ? null : `£${x.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const u = (n, unit) => `${Math.round(n).toLocaleString('en-GB')} ${unit || 'unit'}${Math.round(n) === 1 ? '' : 's'}`;
+  const longDate = (iso) => iso ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+  const insufficient = '<span class="insufficient">Insufficient data</span>';
+  const srcText = { inferred: 'estimated from your counts', manual: 'your value', assumption: 'assumption', approved_data: 'from approved counts' };
+  const scenarioLines = [record.scenarioLabel];
+  if (cfg.demandIncrease > 0) scenarioLines.push(`Demand ${pc(cfg.demandIncrease)} higher than forecast (hypothetical)`);
+  if (cfg.applyReserve) scenarioLines.push(`Emergency reserve of ${cfg.reserveDays} days for Balanced and Resilient`);
+  if (cfg.additionalDeliveryDelayDays > 0) scenarioLines.push(`Deliveries ${cfg.additionalDeliveryDelayDays} days late (hypothetical)`);
+  if (cfg.deliveryQuantityReduction > 0) scenarioLines.push(`Deliveries ${pc(cfg.deliveryQuantityReduction)} smaller than ordered (hypothetical)`);
+  const ap = record.explanations.actionPlan;
+  const fp = record.explanations.finalPlan;
+  const sourceLine = (x) => x ? (x.source === 'nebius' ? `Written by ${x.model} (Nebius) from the calculated results and checked against them.${x.note ? ' ' + x.note : ''}` : `Template text from the calculated results.${x.note ? ' ' + x.note : ''}`) : '';
+  const quantileText = (q) => `${Math.round(q * 100)}th percentile`;
+%>
 <p class="eyebrow">Step 5 of 5</p>
-<h1>Replenishment plan</h1>
-<p class="notice notice--info">This step hasn't been built yet.</p>
+<h1><%= finalised ? 'Finalised plan' : 'Review recommendations' %></h1>
+<p class="lead">
+  <strong><%= labels[policy] %></strong> policy · <%= scenarioLines.join(' · ') %> · <%= cfg.planningHorizonDays %>-day horizon.
+  <%= finalised ? `Finalised ${new Date(record.createdAt).toLocaleString('en-GB')} by ${record.createdBy?.name || 'a manager'}.` : 'Nothing is ordered automatically. Check the recommendations, then confirm.' %>
+</p>
+
+<% if (finalised) { %>
+  <div class="notice notice--success">
+    <p><strong>This plan is finalised.</strong> Record <code><%= record.id %></code>. Its numbers are fixed and can be reproduced from calculation <code><%= record.calculation.calculationVersion %></code> (seed <%= record.calculation.seed %>, <%= record.calculation.runs.toLocaleString('en-GB') %> runs).</p>
+    <div class="button-row">
+      <a class="button button--secondary" href="/plan/download?id=<%= record.id %>">Download plan (JSON)</a>
+      <a class="button button--secondary" href="/plan/print?id=<%= record.id %>">Printable summary</a>
+      <a href="/scenario">Start a new plan</a>
+    </div>
+  </div>
+<% } %>
+<% if (S.warnings.length) { %>
+  <div class="notice notice--warning"><ul><% for (const w of S.warnings) { %><li><%= w %></li><% } %></ul></div>
+<% } %>
+
+<section class="section">
+  <div class="kpis">
+    <div class="kpi">
+      <span class="kpi__kind">Recommended</span>
+      <span class="kpi__label">Request now</span>
+      <span class="kpi__value"><%= n0(S.totalReplenish) %> <small>units</small></span>
+      <span class="kpi__note"><%= S.productsToReplenish %> of <%= rows.length %> products<%= S.productsToReplenish ? ': ' + rows.filter((r) => r.replenish > 0).slice(0, 3).map((r) => `${r.name} ${r.replenish}`).join(', ') + (S.productsToReplenish > 3 ? '…' : '') : '' %></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__kind">Projected</span>
+      <span class="kpi__label">Expected shortages</span>
+      <span class="kpi__value"><%= n0(S.expectedUnmet) %> <small>units unmet</small></span>
+      <span class="kpi__note"><%= S.expectedProtectedProductsShort === null ? '' : `${n1(S.expectedProtectedProductsShort)} of ${S.protectedProducts} critical or essential products expected to run short` %></span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__kind">Projected</span>
+      <span class="kpi__label">Expected waste</span>
+      <span class="kpi__value"><%- S.expectedWaste === null ? insufficient : `${n0(S.expectedWaste)} <small>units</small>` %></span>
+      <span class="kpi__note">Stock passing its best-before date before it can be given out</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__kind">Recommended</span>
+      <span class="kpi__label">Emergency reserves</span>
+      <span class="kpi__value"><%= n0(S.emergencyReserveUnits) %> <small>units</small></span>
+      <span class="kpi__note">Buffer above expected use, critical and essential products</span>
+    </div>
+    <div class="kpi<%= S.expiryAlerts ? ' kpi--alert' : '' %>">
+      <span class="kpi__kind">Current</span>
+      <span class="kpi__label">Expiry alerts</span>
+      <span class="kpi__value"><%= S.expiryAlerts %> <small>product<%= S.expiryAlerts === 1 ? '' : 's' %></small></span>
+      <span class="kpi__note">With stock reaching its best-before date within <%= cfg.planningHorizonDays %> days</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__kind">Recommended</span>
+      <span class="kpi__label">Cost of request</span>
+      <span class="kpi__value"><%- S.costCoverage === 'none' ? insufficient : gbp(S.cost) %></span>
+      <span class="kpi__note"><%= S.costCoverage === 'partial' ? 'Some products have no unit cost' : S.costCoverage === 'none' ? 'Add unit costs in Step 2 to estimate this' : (S.budget ? (S.budget.withinBudget ? `Within the ${gbp(S.budget.horizonBudget)} budget for this horizon` : `Above the ${gbp(S.budget.horizonBudget)} budget for this horizon`) : '') %></span>
+    </div>
+  </div>
+  <p class="hint">Current = your approved stock. Projected and shortage figures are estimates from <%= record.calculation.runs.toLocaleString('en-GB') %> simulated futures. Recommended = this policy's decision.</p>
+</section>
+
+<section class="section">
+  <h2>Recommendations</h2>
+  <p>Most urgent first. Open a row to see why.</p>
+  <div class="table-scroll">
+    <table class="table rec-table">
+      <thead>
+        <tr>
+          <th>Product</th><th class="num">Current stock</th><th class="num">Expected demand</th><th class="num">Replenish</th>
+          <th class="num">Emergency reserve</th><th class="num">Shortage risk</th><th>Expiry warning</th><th>Priority</th>
+        </tr>
+      </thead>
+      <% for (const r of rows) { const inp = record.forecastModel[r.productId]; const ev = record.evidence[r.productId] || {}; const prm = record.parameters.products[r.productId] || {}; const pp = record.policies[policy].products[r.productId]; %>
+      <tbody class="rec rec--<%= r.urgency %>">
+        <tr>
+          <td>
+            <strong><%= r.name %></strong> <span class="small">(<%= r.unit || 'units' %>)</span>
+            <% if (r.urgency !== 'normal') { %><br><span class="tag <%= r.urgency === 'act_now' ? 'tag--alert' : r.urgency === 'high' ? 'tag--warn' : 'tag--expiry' %>"><%= urgency[r.urgency].label %></span><% } %>
+          </td>
+          <td class="num"><%= n0(r.currentStock) %></td>
+          <td class="num"><%= n0(r.expectedDemand) %></td>
+          <td class="num"><strong class="replenish"><%= r.replenish ? '+' + n0(r.replenish) : '–' %></strong></td>
+          <td class="num"><%= n0(r.emergencyReserve) %></td>
+          <td class="num<%= r.shortageRisk >= 0.5 ? ' is-low' : '' %>"><%= pc(r.shortageRisk) %></td>
+          <td><%= r.expiring.quantity ? `${n0(r.expiring.quantity)} by ${longDate(r.expiring.earliestDate)}` : '–' %></td>
+          <td><span class="tag tag--<%= r.priority %>"><%= r.priority[0].toUpperCase() + r.priority.slice(1) %></span></td>
+        </tr>
+        <tr class="why-row">
+          <td colspan="8">
+            <details class="why">
+              <summary>Why this recommendation?</summary>
+              <div class="why__body">
+                <p class="why__lead">
+                  <% if (r.replenish > 0) { %>
+                    <strong><%= r.name %>: request <%= u(r.replenish, r.unit) %>.</strong>
+                    Current stock is <%= u(r.currentStock, r.unit) %>, against an order-up-to target of <%= n0(r.target) %> for the <%= labels[policy] %> policy.
+                  <% } else { %>
+                    <strong><%= r.name %>: no request now.</strong>
+                    Current stock of <%= u(r.currentStock, r.unit) %> already meets the <%= labels[policy] %> target of <%= n0(r.target) %>. Later order days are included in the simulation.
+                  <% } %>
+                  Across <%= record.calculation.runs.toLocaleString('en-GB') %> simulated futures, the estimated chance of at least one shortage over <%= cfg.planningHorizonDays %> days is <%= pc(r.shortageRisk) %>.
+                </p>
+                <div class="why__grid">
+                  <div>
+                    <h4>Input evidence</h4>
+                    <dl class="summary summary--tight">
+                      <div><dt>Current stock</dt><dd><%= u(r.currentStock, r.unit) %><%= ev.stock?.snapshotDate ? `, counted ${longDate(ev.stock.snapshotDate)}` : '' %> (<%= srcText[prm.sources?.currentStock] || 'approved' %>)</dd></div>
+                      <div><dt>Weekly demand</dt><dd><%= n1(7 * inp.muHat) %> (<%= srcText[prm.sources?.dailyDemand] || '' %>)<%= ev.demand?.weeklyCi95 && prm.sources?.dailyDemand === 'inferred' ? `, 95% range ${n1(ev.demand.weeklyCi95[0])}–${n1(ev.demand.weeklyCi95[1])} from ${ev.demand.intervalsUsed} falls in stock` : '' %></dd></div>
+                      <div><dt>Variability</dt><dd><%= inp.model === 'negative_binomial' ? `Negative binomial, α = ${inp.alpha}` : 'Poisson' %>; daily sd <%= inp.dailySd %> after adjustments</dd></div>
+                      <div><dt>Seasonal adjustment</dt><dd>× <%= inp.seasonalMultiplier %> (<%= srcText[prm.sources?.seasonalMultiplier] || '' %>)</dd></div>
+                      <div><dt>Lead time</dt><dd><%= inp.leadTime %> days (<%= srcText[prm.sources?.leadTimeDays] || '' %>)<%= inp.leadTimeDisrupted !== inp.leadTime ? `; ${inp.leadTimeDisrupted} days in this scenario` : '' %></dd></div>
+                      <div><dt>Deliveries arriving</dt><dd><%= pc(record.policyConstraints.deliverySuccessProbability) %> (hypothetical)</dd></div>
+                      <div><dt>Dated stock</dt><dd><%= r.expiring.batches.length ? r.expiring.batches.map((b) => `${b.quantity} by ${longDate(b.expiryDate)}`).join('; ') : (inp.hasExpiryData ? 'None reaching its date in the horizon' : 'No dates recorded') %></dd></div>
+                    </dl>
+                    <% if (ev.flags && ev.flags.length) { %>
+                    <ul class="plain-list why__flags"><% for (const f of ev.flags) { %><li class="note note--<%= f.level %>"><%= f.message %></li><% } %></ul>
+                    <% } %>
+                  </div>
+                  <div>
+                    <h4>Scenario assumptions</h4>
+                    <ul class="plain-list"><% for (const s of scenarioLines) { %><li><%= s %></li><% } %></ul>
+                    <h4>Method</h4>
+                    <p>
+                      Demand over the protection horizon (<%= pp.protectionHorizonDays %> days: lead time <%= policy === 'resilient' ? inp.leadTimeDisrupted : inp.leadTime %> + order period <%= g.reviewPeriodDays %>) has a mean of <%= n1(inp.mu * pp.protectionHorizonDays) %>.
+                      <%= labels[policy] %> orders up to its <%= quantileText(pp.quantile) %>: <%= n0(pp.target) %><%= pp.reserveBinding ? `, raised to the emergency reserve of ${inp.reserveUnits}` : '' %>.
+                      Today, stock on hand plus on order is <%= n0(r.currentStock) %>, so the request is max(0, <%= n0(pp.target) %> − <%= n0(r.currentStock) %>) = <%= n0(r.replenish) %><%= r.capacityShortfallPerOrder > 0 ? ', reduced to fit storage capacity' : '' %>.
+                    </p>
+                    <h4>Simulation results <span class="small">(estimates)</span></h4>
+                    <dl class="summary summary--tight">
+                      <div><dt>Chance of a shortage</dt><dd><%= pc(r.shortageRisk) %></dd></div>
+                      <div><dt>Running out before the first delivery</dt><dd><%= pc(r.shortageBeforeFirstDelivery) %> (earliest delivery day <%= r.firstPossibleDeliveryDay %>)</dd></div>
+                      <% if (r.medianFirstShortageDay !== null) { %><div><dt>Shortages usually start</dt><dd>Day <%= r.medianFirstShortageDay %></dd></div><% } %>
+                      <div><dt>Expected unmet demand</dt><dd><%= n1(r.expectedUnmet) %> (95% of futures at or below <%= n0(r.unmetP95) %>)</dd></div>
+                      <div><dt>Expected waste</dt><dd><%- r.expectedWaste === null ? insufficient : n1(r.expectedWaste) %></dd></div>
+                      <div><dt>Expected stock at the end</dt><dd><%= n1(r.expectedEnding) %></dd></div>
+                    </dl>
+                  </div>
+                </div>
+                <div class="why__chart" data-chart="projection" data-series="<%= JSON.stringify(record.projected[r.productId] || null) %>" data-unit="<%= r.unit || 'unit' %>"></div>
+                <h4>Compared with the other policies</h4>
+                <table class="table table--compact">
+                  <thead><tr><th>Policy</th><th class="num">Request now</th><th class="num">Target</th><th class="num">Shortage chance</th><th class="num">Expected unmet</th><th class="num">Expected waste</th></tr></thead>
+                  <tbody>
+                    <% for (const p of P) { const o = record.policies[p].products[r.productId]; %>
+                    <tr class="<%= p === policy ? 'is-selected' : '' %>"><td><%= labels[p] %><%= p === policy ? ' (selected)' : '' %></td><td class="num"><%= o.initialOrder %></td><td class="num"><%= o.target %></td><td class="num"><%= pc(o.shortageProbability) %></td><td class="num"><%= n1(o.expectedUnmet) %></td><td class="num"><%- o.expectedWaste === null ? insufficient : n1(o.expectedWaste) %></td></tr>
+                    <% } %>
+                  </tbody>
+                </table>
+                <p class="small">
+                  <% const others = P.filter((p) => p !== policy).map((p) => [p, record.policies[p].products[r.productId]]); %>
+                  <%= labels[policy] %> requests <%= r.replenish %> with a <%= pc(r.shortageRisk) %> shortage chance;
+                  <%= others.map(([p, o]) => `${labels[p]} would request ${o.initialOrder} with ${pc(o.shortageProbability)}`).join(', and ') %>.
+                  These are simulated estimates under the same futures, not guarantees.
+                </p>
+              </div>
+            </details>
+          </td>
+        </tr>
+      </tbody>
+      <% } %>
+    </table>
+  </div>
+</section>
+
+<% if (finalised && fp) { %>
+<section class="section plan-box">
+  <h2>Final action plan</h2>
+  <div class="plan-sections">
+    <% for (const [key, label] of [['request', 'Request'], ['prioritise', 'Prioritise'], ['distributeFirst', 'Distribute first'], ['maintain', 'Maintain'], ['monitor', 'Monitor']]) { if (!fp.sections[key]?.length) continue; %>
+    <div class="plan-section"><h3><%= label %></h3><ul><% for (const s of fp.sections[key]) { %><li><%= s %></li><% } %></ul></div>
+    <% } %>
+  </div>
+  <p class="hint"><%= sourceLine(fp) %></p>
+</section>
+<% } %>
+
+<% if (ap) { %>
+<section class="section plan-box">
+  <h2><%= finalised ? 'Action plan at selection' : 'Action plan' %></h2>
+  <div class="plan-sections">
+    <% for (const [key, label] of [['whatToRequest', 'What to request'], ['whenToAct', 'When to act'], ['immediatePriorities', 'Immediate priorities'], ['risksAndTradeoffs', 'Risks and trade-offs'], ['contingency', 'Contingency']]) { if (!ap.sections[key]?.length) continue; %>
+    <div class="plan-section"><h3><%= label %></h3><ul><% for (const s of ap.sections[key]) { %><li><%= s %></li><% } %></ul></div>
+    <% } %>
+  </div>
+  <p class="hint"><%= sourceLine(ap) %></p>
+</section>
+<% } %>
+
+<section class="section">
+  <h2>How the three policies compare</h2>
+  <% if (ap?.sections?.tradeoffSummary?.length) { %><p><%= ap.sections.tradeoffSummary.join(' ') %></p><% } %>
+  <div class="table-scroll">
+    <table class="table">
+      <thead><tr><th>Measure</th><% for (const p of P) { %><th class="num<%= p === policy ? ' is-selected' : '' %>"><%= labels[p] %><%= p === policy ? ' (selected)' : '' %></th><% } %></tr></thead>
+      <tbody>
+        <% for (const [label, f] of [
+          ['Request now (units)', (t) => n0(t.initialOrder)],
+          ['Chance any critical or essential item runs short', (t) => pc(t.protectedShortageProbability)],
+          ['Critical and essential products short (expected)', (t) => n1(t.expectedProtectedProductsShort)],
+          ['Expected unmet demand (units)', (t) => n0(t.expectedUnmet)],
+          ['Worst 5% of futures, unmet (CVaR)', (t) => n0(t.unmetCvar95)],
+          ['Expected waste (units)', (t) => n0(t.expectedWaste)],
+          ['Emergency reserves (units)', (t) => n0(t.emergencyReserveUnits)],
+          ['Estimated cost of request', (t) => t.costCoverage === 'none' ? null : gbp(t.initialOrderCost)],
+        ]) { %>
+        <tr><th scope="row"><%= label %></th><% for (const p of P) { const v = f(record.policies[p].totals); %><td class="num<%= p === policy ? ' is-selected' : '' %>"><%- v === null ? insufficient : v %></td><% } %></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <% if (canSwitch) { %>
+  <div class="button-row">
+    <% for (const p of P.filter((x) => x !== policy)) { %>
+    <form method="post" action="/compare/select" class="inline-form" data-busy="Switching…"><input type="hidden" name="policy" value="<%= p %>"><button type="submit" class="button button--secondary">Switch to <%= labels[p] %></button></form>
+    <% } %>
+    <a href="/compare">Full comparison</a>
+  </div>
+  <% } %>
+</section>
+
+<% if (!finalised) { %>
+<section class="section finalise-box">
+  <h2>Confirm and finalise</h2>
+  <p>This fixes the <strong><%= labels[policy] %></strong> recommendations and saves them with the evidence behind them: input version <%= record.inputVersion %>, calculation <code><%= record.calculation.calculationVersion %></code>, seed <%= record.calculation.seed %>. SupplyShield doesn't place any orders.</p>
+  <form method="post" action="/plan/finalise" data-busy="Finalising…">
+    <button type="submit" class="button button--large">Confirm &amp; finalise plan</button>
+  </form>
+</section>
+<% } %>
+
+<section class="section">
+  <details>
+    <summary><h2 class="summary-heading">Audit trail</h2></summary>
+    <dl class="summary">
+      <div><dt>Approved dataset</dt><dd><%= record.dataset ? `${record.dataset.sourceFile || 'Manual entry'}, version ${record.dataset.version}, ${record.dataset.rowsUsed} rows used, ${record.dataset.rowsExcluded} left out` : '–' %></dd></div>
+      <div><dt>Parameters approved</dt><dd><%= record.parameters.approvedAt ? new Date(record.parameters.approvedAt).toLocaleString('en-GB') : '–' %> (input version <%= record.parameters.approvedVersion %>)</dd></div>
+      <div><dt>Calculation</dt><dd><code><%= record.calculation.calculationVersion %></code>, run <%= new Date(record.calculation.ranAt).toLocaleString('en-GB') %>, <%= record.calculation.runs.toLocaleString('en-GB') %> runs, seed <%= record.calculation.seed %></dd></div>
+      <div><dt>Checks</dt><dd>Stock never negative: <%= record.calculation.checks.inventoryNonNegative ? 'passed' : 'failed' %>. Stock balances: <%= record.calculation.checks.inventoryBalances ? 'passed' : 'failed' %>. Same futures for every policy: demand checksum <%= record.calculation.checks.demandChecksum %>.</dd></div>
+      <div><dt>Policy selection</dt><dd><%= record.policyConstraints.selectionCriteria %></dd></div>
+      <div><dt>Methods</dt><dd class="small"><%= Object.values(record.calculation.methods).join(', ') %></dd></div>
+    </dl>
+    <h3>Formulas</h3>
+    <dl class="summary"><% for (const [k, v] of record.formulas) { %><div><dt><%= k %></dt><dd><%= v %></dd></div><% } %></dl>
+    <h3>Assumptions</h3>
+    <ul class="plain-list"><% for (const a of record.assumptions) { %><li class="note"><%= a %></li><% } %></ul>
+  </details>
+</section>
 <%- include('partials/foot') %>

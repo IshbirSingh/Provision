@@ -53,8 +53,27 @@ async function chat({ tier = 'efficient', system, user, json = false, temperatur
   }
 }
 
+// Confirms the key works and both configured models are available.
+// Lists models only, so no tokens are used.
+async function checkConnection() {
+  if (!isConfigured()) return { status: 'off', detail: 'NEBIUS_API_KEY is not set. Template explanations will be used.' };
+  try {
+    const res = await fetch(`${BASE_URL}/models`, {
+      headers: { Authorization: `Bearer ${process.env.NEBIUS_API_KEY}` },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return { status: 'error', detail: `Nebius returned ${res.status}. Check NEBIUS_API_KEY.` };
+    const ids = new Set(((await res.json()).data || []).map((m) => m.id));
+    const missing = Object.values(MODELS).filter((m) => !ids.has(m));
+    if (missing.length) return { status: 'error', detail: `Model not available: ${missing.join(', ')}` };
+    return { status: 'ok', detail: `${MODELS.advanced} and ${MODELS.efficient}` };
+  } catch (err) {
+    return { status: 'error', detail: `Could not reach Nebius: ${err.message}` };
+  }
+}
+
 function stripFences(text) {
   return text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, '').trim();
 }
 
-module.exports = { MODELS, isConfigured, chat, NebiusError };
+module.exports = { MODELS, isConfigured, checkConnection, chat, NebiusError };

@@ -30,6 +30,7 @@ TASKS = {
     "ping": ping,
     "analyse": analysis.run,
     "simulate": simulation.run,
+    "preview": simulation.preview,
 }
 
 

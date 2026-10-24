@@ -1,5 +1,180 @@
 <%- include('partials/head', { title }) %>
+<%
+  const methodText = staging.method === 'nebius'
+    ? `Interpreted by ${staging.model} (Nebius)`
+    : staging.method === 'manual' ? 'Entered by hand' : 'Interpreted by header matching and keyword rules';
+  const productList = Object.entries(staging.products).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const dayLabel = (n) => n === null ? '–' : n === 7 ? 'Weekly' : n === 14 ? 'Fortnightly' : n === 1 ? 'Daily' : `${n} days`;
+%>
 <p class="eyebrow">Step 1 of 5</p>
 <h1>Review extracted records</h1>
-<p class="notice notice--info">This step hasn't been built yet.</p>
+<p class="lead">
+  <%= staging.sourceFile || 'Manual entry' %><% if (staging.headers && staging.headers.length) { %> · <%= counts.total %> rows<% } %> · <%= methodText %>.
+  Check the products and any flagged rows, then approve. Nothing is used until you approve it.
+</p>
+
+<div class="status-bar" id="status-bar" aria-live="polite">
+  <span><strong id="count-ok"><%= counts.ok %></strong> ready</span>
+  <span><strong id="count-warning"><%= counts.warning %></strong> to check</span>
+  <span><strong id="count-excluded"><%= counts.excluded %></strong> will be left out</span>
+</div>
+
+<% const warningList = Object.values(staging.warnings || {}); if (warningList.length) { %>
+<section class="section">
+  <h2>Notes on this file</h2>
+  <ul class="plain-list">
+    <% for (const w of warningList) { %>
+      <li class="note note--<%= w.level %>"><%= w.message %></li>
+    <% } %>
+  </ul>
+</section>
+<% } %>
+
+<section class="section">
+  <h2>Products</h2>
+  <p>Product names that mean the same thing have been grouped. Check each category and priority: priority decides how strongly later steps protect against running out.</p>
+  <div class="table-scroll">
+    <table class="table table--form" id="products-table">
+      <thead>
+        <tr><th>Name</th><th>Category</th><th>Priority</th><th>Unit</th><th>Pack size</th><th>Names in file</th></tr>
+      </thead>
+      <tbody>
+        <% for (const [id, p] of productList) { %>
+        <tr data-product="<%= id %>">
+          <td><input type="text" name="name" value="<%= p.name %>" aria-label="Product name"></td>
+          <td>
+            <select name="category" aria-label="Category">
+              <% for (const [cid, c] of Object.entries(categories)) { %><option value="<%= cid %>"<%= p.category === cid ? ' selected' : '' %>><%= c.label %></option><% } %>
+            </select>
+          </td>
+          <td>
+            <select name="priority" aria-label="Priority">
+              <% for (const [pid, pr] of Object.entries(priorities)) { %><option value="<%= pid %>"<%= p.priority === pid ? ' selected' : '' %>><%= pr.label %></option><% } %>
+            </select>
+          </td>
+          <td><input type="text" name="unit" value="<%= p.unit || '' %>" class="input--unit" aria-label="Unit"></td>
+          <td class="nowrap"><%= p.packSize ? `${p.packSize} ${p.packSizeUnit}` : '–' %></td>
+          <td class="small">
+            <%= (p.rawNames || []).join(', ') || '–' %>
+            <% if (p.source === 'nebius' && p.confidence && p.confidence !== 'high') { %><br><span class="tag tag--warn"><%= p.confidence %> confidence</span><% } %>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <form class="add-product" id="add-product">
+    <strong>Add a product</strong>
+    <input type="text" name="name" placeholder="Name" aria-label="New product name" required>
+    <select name="category" aria-label="New product category">
+      <% for (const [cid, c] of Object.entries(categories)) { %><option value="<%= cid %>"><%= c.label %></option><% } %>
+    </select>
+    <input type="text" name="unit" placeholder="Unit, e.g. tin" class="input--unit" aria-label="New product unit">
+    <button type="submit" class="button button--secondary">Add</button>
+  </form>
+</section>
+
+<% if (productList.length) { %>
+<section class="section">
+  <h2>What the counts show</h2>
+  <p>Rises between counts suggest deliveries or donations. Falls are <em>inferred consumption</em>: they may also include waste, transfers or corrections, which stock counts alone can't tell apart. Step 2 analyses these in detail.</p>
+  <div class="table-scroll">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Product</th><th class="num">Counts</th><th>Period</th><th>Counted</th>
+          <th class="num">Rises</th><th class="num">Falls</th><th class="num">Times at zero</th>
+          <th class="num">Latest count</th><th>Earliest best-before</th><th class="num">Rows to check</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const [id, p] of productList) { const s = patterns[id]; %>
+        <tr>
+          <td><%= p.name %></td>
+          <td class="num"><%= s.counts %></td>
+          <td class="nowrap"><%= s.from ? `${s.from} to ${s.to}` : '–' %></td>
+          <td><%= dayLabel(s.typicalIntervalDays) %></td>
+          <td class="num"><%= s.rises %></td>
+          <td class="num"><%= s.falls %></td>
+          <td class="num"><%= s.zeroCounts ? s.zeroCounts : '–' %></td>
+          <td class="num"><%= s.latestStock ?? '–' %></td>
+          <td><%= s.earliestExpiry || 'Not recorded' %></td>
+          <td class="num"><%= s.flaggedRows || '–' %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<% } %>
+
+<% if (staging.headers && staging.headers.length) { %>
+<section class="section" id="columns">
+  <details<%= mappingErrors.length ? ' open' : '' %>>
+    <summary><h2 class="summary-heading">Columns</h2></summary>
+    <% if (mappingErrors.length) { %><div class="notice notice--error"><%= mappingErrors.join('. ') %>.</div><% } %>
+    <p>How each column in the file was read. Changing these re-reads the whole file and discards edits made on this page.</p>
+    <form method="post" action="/review/columns" class="form" data-busy="Re-reading…">
+      <table class="table table--form">
+        <thead><tr><th>Column in file</th><th>Read as</th><th>First value</th></tr></thead>
+        <tbody>
+          <% const firstRaw = records.find((r) => r.id && staging.records[r.id].raw); %>
+          <% staging.headers.forEach((h, i) => { %>
+          <tr>
+            <td><%= h %></td>
+            <td>
+              <select name="col_<%= i %>" aria-label="Field for <%= h %>">
+                <% for (const f of fields) { %><option value="<%= f %>"<%= staging.columnMapping[h] === f ? ' selected' : '' %>><%= f === 'ignore' ? 'Not used' : f[0].toUpperCase() + f.slice(1) %></option><% } %>
+              </select>
+            </td>
+            <td class="small"><%= firstRaw ? staging.records[firstRaw.id].raw[h] : '' %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <button type="submit" class="button button--secondary">Re-read file with these columns</button>
+    </form>
+  </details>
+</section>
+<% } %>
+
+<section class="section">
+  <h2>Stock counts</h2>
+  <p>Edits save as you make them. Rows that are left out are kept here but not used; untick <em>Include</em> to leave a row out yourself.</p>
+  <div class="toolbar">
+    <div class="segmented" role="group" aria-label="Show rows">
+      <button type="button" data-filter="attention" class="is-active">Needs checking (<span id="n-attention">0</span>)</button>
+      <button type="button" data-filter="all">All rows (<span id="n-all">0</span>)</button>
+    </div>
+    <button type="button" class="button button--secondary" id="add-row">Add a row</button>
+  </div>
+  <div class="table-scroll">
+    <table class="table table--form table--records" id="records-table">
+      <thead>
+        <tr><th class="num">Row</th><th>Date</th><th>Product</th><th class="num">Quantity</th><th>Unit</th><th>Best before</th><th>Notes</th><th>Check</th><th>Include</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p id="records-empty" class="hint" hidden>No rows need checking.</p>
+  <div class="pager" id="pager"></div>
+</section>
+
+<section class="section approve-box">
+  <h2>Approve</h2>
+  <p>Approving replaces the current approved data with <strong id="approve-count"><%= counts.ok + counts.warning %></strong> rows from this file. Parameters and results based on older data will be cleared.</p>
+  <div class="button-row">
+    <form method="post" action="/review/approve" class="inline-form" data-busy="Approving…">
+      <button type="submit" class="button" id="approve-button"<%= counts.ok + counts.warning === 0 ? ' disabled' : '' %>>Approve records</button>
+    </form>
+    <form method="post" action="/review/discard" class="inline-form" onsubmit="return confirm('Discard this upload? Your approved data will not change.');">
+      <button type="submit" class="link-button">Discard this upload</button>
+    </form>
+  </div>
+</section>
+
+<script type="application/json" id="review-data"><%- JSON.stringify({
+  records,
+  products: Object.fromEntries(productList.map(([id, p]) => [id, { name: p.name, unit: p.unit }])),
+}).replace(/</g, '\\u003c') %></script>
 <%- include('partials/foot') %>

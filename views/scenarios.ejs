@@ -1,5 +1,100 @@
 <%- include('partials/head', { title }) %>
+<%
+  const cards = [
+    ['normal_operations', 'Normal operations', 'Approved demand, lead times and delivery assumptions, with no extra stress.'],
+    ['increased_demand', 'Increased demand', 'More households than the forecast expects, for example after a local closure or benefit change.'],
+    ['safety_first', 'Safety first', 'Hold a larger emergency reserve to protect against uncertainty.'],
+    ['delivery_disruption', 'Delivery disruption', 'Deliveries arrive later than usual, and optionally bring less than ordered.'],
+  ];
+  const owner = { demand: 'increased_demand', reserve: 'safety_first', delivery: 'delivery_disruption' };
+  const demandPct = Math.round((config.demandIncrease || 0) * 100);
+  const reductionPct = Math.round((config.deliveryQuantityReduction || 0) * 100);
+  const combined = scenario.combined || {};
+  const previewData = preview ? Object.values(preview).map((p) => ({ name: p.name, from: p.bindsFromDays.balanced })) : [];
+%>
 <p class="eyebrow">Step 3 of 5</p>
-<h1>Scenario</h1>
-<p class="notice notice--info">This step hasn't been built yet.</p>
+<h1>Choose a scenario</h1>
+<p class="lead">Test how the three replenishment policies cope with different conditions. Your approved parameters don't change. Adjustments here are hypothetical and labelled as such in the results.</p>
+
+<% if (hasResults) { %>
+  <div class="notice notice--info">Results for the current scenario are ready. <a href="/compare">View the comparison</a>, or change the scenario and compare again.</div>
+<% } %>
+
+<form method="post" action="/scenario" id="scenario-form" data-busy="Running 1,000 simulations…">
+  <fieldset class="fieldset">
+    <legend>Scenario</legend>
+    <div class="scenario-cards">
+      <% for (const [id, label, text] of cards) { %>
+      <label class="scenario-card">
+        <input type="radio" name="scenarioId" value="<%= id %>"<%= config.scenarioId === id ? ' checked' : '' %>>
+        <span class="scenario-card__title"><%= label %></span>
+        <span class="scenario-card__text"><%= text %></span>
+      </label>
+      <% } %>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Adjustments</legend>
+
+    <div class="adjustment" data-adjustment="demand">
+      <div class="adjustment__head">
+        <h3>Demand increase</h3>
+        <span class="adjustment__state" data-owned-text>Part of this scenario</span>
+        <label class="adjustment__combine"><input type="checkbox" name="combine[demand]"<%= combined.demand ? ' checked' : '' %>> Also apply</label>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="demandIncreasePct" name="demandIncreasePct" min="0" max="100" step="5" value="<%= demandPct %>" aria-describedby="demand-out">
+        <output id="demand-out" for="demandIncreasePct"><%= demandPct %>%</output>
+      </div>
+      <p class="hint">Unexpected demand on top of the approved forecast. Seasonal adjustments approved in Step 2<%= seasonalProducts ? ` (${seasonalProducts} product${seasonalProducts === 1 ? '' : 's'})` : '' %> are already included and aren't applied again.</p>
+    </div>
+
+    <div class="adjustment" data-adjustment="reserve">
+      <div class="adjustment__head">
+        <h3>Emergency reserve</h3>
+        <span class="adjustment__state" data-owned-text>Part of this scenario</span>
+        <label class="adjustment__combine"><input type="checkbox" name="combine[reserve]"<%= combined.reserve ? ' checked' : '' %>> Also apply</label>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="reserveDays" name="reserveDays" min="0" max="21" step="1" value="<%= config.reserveDays %>" aria-describedby="reserve-out">
+        <output id="reserve-out" for="reserveDays"><%= config.reserveDays %> days</output>
+      </div>
+      <p class="hint">Balanced and Resilient order up to at least this many days of average demand. It only changes a target when it's larger than what the policy already holds.</p>
+      <% if (preview) { %><p class="reserve-effect" id="reserve-effect" aria-live="polite"></p><% } %>
+    </div>
+
+    <div class="adjustment" data-adjustment="delivery">
+      <div class="adjustment__head">
+        <h3>Delivery disruption</h3>
+        <span class="adjustment__state" data-owned-text>Part of this scenario</span>
+        <label class="adjustment__combine"><input type="checkbox" name="combine[delivery]"<%= combined.delivery ? ' checked' : '' %>> Also apply</label>
+      </div>
+      <label for="delayDays" class="slider-label">Extra delay</label>
+      <div class="slider-row">
+        <input type="range" id="delayDays" name="delayDays" min="0" max="14" step="1" value="<%= config.additionalDeliveryDelayDays %>" aria-describedby="delay-out">
+        <output id="delay-out" for="delayDays"><%= config.additionalDeliveryDelayDays %> days</output>
+      </div>
+      <label class="check"><input type="checkbox" name="reduceQuantities" id="reduceQuantities"<%= scenario.reduceQuantities || reductionPct > 0 ? ' checked' : '' %>> Deliveries also bring less than ordered</label>
+      <div class="slider-row" id="reduction-row">
+        <input type="range" id="quantityReductionPct" name="quantityReductionPct" min="0" max="100" step="5" value="<%= reductionPct %>" aria-label="Delivery quantity reduction" aria-describedby="reduction-out">
+        <output id="reduction-out" for="quantityReductionPct"><%= reductionPct %>% less</output>
+      </div>
+      <p class="hint">A stress test, not an estimate of your suppliers' reliability. Every policy faces the delay; only Resilient plans for it in advance.</p>
+    </div>
+  </fieldset>
+
+  <section class="section active-summary">
+    <h2>What will be simulated</h2>
+    <ul class="plain-list" id="active-list"></ul>
+    <p class="hint">From approved parameters: <%= global.planningHorizonDays %>-day horizon, orders every <%= global.reviewPeriodDays %> days, <%= Math.round(global.deliverySuccessProbability * 100) %>% of deliveries arriving (assumption). <%= (global.runs || 1000).toLocaleString('en-GB') %> simulated futures with seed <%= global.seed %>, the same for all three policies.</p>
+  </section>
+
+  <div class="button-row">
+    <button type="submit" class="button button--large">Compare policies</button>
+    <a href="/parameters">Back to parameters</a>
+  </div>
+</form>
+
+<script type="application/json" id="scenario-data"><%- JSON.stringify({ owner, preview: previewData }).replace(/</g, '\\u003c') %></script>
 <%- include('partials/foot') %>

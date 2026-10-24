@@ -52,7 +52,13 @@
       </div>
       <div>
         <dt>Nebius AI</dt>
-        <dd><%- integrations.nebius ? '<span class="tag tag--done">Connected</span>' : '<span class="tag tag--muted">Not configured</span> <span class="hint">Template explanations will be used.</span>' %></dd>
+        <dd>
+          <% if (integrations.nebius.status === 'ok') { %><span class="tag tag--done">Connected</span>
+          <% } else if (integrations.nebius.status === 'checking') { %><span class="tag">Checking</span>
+          <% } else if (integrations.nebius.status === 'off') { %><span class="tag tag--muted">Not configured</span>
+          <% } else { %><span class="tag tag--alert">Unavailable</span><% } %>
+          <% if (integrations.nebius.detail) { %><span class="hint"><%= integrations.nebius.detail %></span><% } %>
+        </dd>
       </div>
       <div>
         <dt>Tavily search</dt>
@@ -61,6 +67,27 @@
     </dl>
   </section>
 </div>
+
+<% if (plans.length) { %>
+<section class="section">
+  <h2>Finalised plans</h2>
+  <table class="table">
+    <thead><tr><th>Finalised</th><th>Policy</th><th>Scenario</th><th class="num">Units requested</th><th>By</th><th></th></tr></thead>
+    <tbody>
+      <% for (const p of plans) { %>
+      <tr>
+        <td><%= new Date(p.createdAt).toLocaleString('en-GB') %></td>
+        <td><%= p.policy[0].toUpperCase() + p.policy.slice(1) %></td>
+        <td><%= p.scenario %></td>
+        <td class="num"><%= p.units.toLocaleString('en-GB') %></td>
+        <td><%= p.createdBy || '' %></td>
+        <td class="num nowrap"><a href="/plan/print?id=<%= p.id %>">View</a> · <a href="/plan/download?id=<%= p.id %>">JSON</a></td>
+      </tr>
+      <% } %>
+    </tbody>
+  </table>
+</section>
+<% } %>
 
 <section class="section">
   <h2>Sample workspace</h2>

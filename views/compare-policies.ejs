@@ -1,5 +1,151 @@
 <%- include('partials/head', { title }) %>
+<%
+  const P = ['lean', 'balanced', 'resilient'];
+  const pol = sim.policies;
+  const n0 = (x) => x === null || x === undefined ? null : Math.round(x).toLocaleString('en-GB');
+  const pc = (x) => x === null || x === undefined ? null : `${Math.round(x * 100)}%`;
+  const gbp = (x) => x === null || x === undefined ? null : `£${x.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const diff = (x, base, fmt = (v) => Math.round(v).toLocaleString('en-GB'), scale = 1) => {
+    if (x === null || x === undefined || base === null || base === undefined) return '';
+    const d = (x - base) * scale;
+    if (Math.abs(d) < 0.5) return '<span class="delta">same as Balanced</span>';
+    return `<span class="delta">${d > 0 ? '+' : '−'}${fmt(Math.abs(d))} vs Balanced</span>`;
+  };
+  const insufficient = '<span class="insufficient">Insufficient data</span>';
+  const rowsDef = [
+    ['Request now', 'Units to order today (the day-0 order)', (t) => n0(t.initialOrder), (t) => t.initialOrder],
+    ['Average ordered over the horizon', 'Mean of all orders placed across the simulated futures', (t) => n0(t.averageOrdered), (t) => t.averageOrdered],
+    ['Expected unmet demand', 'Units requested when the shelf was empty, averaged over futures', (t) => n0(t.expectedUnmet), (t) => t.expectedUnmet],
+    ['Worst 5% of futures (CVaR)', 'Average unmet demand in the worst 5% of futures', (t) => n0(t.unmetCvar95), (t) => t.unmetCvar95],
+    ['Chance any critical or essential item runs short', 'Share of futures with at least one shortage of a critical or essential product', (t) => pc(t.protectedShortageProbability), null],
+    ['Critical and essential products short', 'Expected number of those products with a shortage', (t) => t.expectedProtectedProductsShort === null ? null : `${t.expectedProtectedProductsShort.toFixed(1)} of ${t.protectedProducts}`, (t) => t.expectedProtectedProductsShort],
+    ['Demand met', 'Share of simulated demand that was served', (t) => pc(t.serviceLevel), null],
+    ['Expected waste', 'Units passing their best-before date before use', (t) => n0(t.expectedWaste), (t) => t.expectedWaste],
+    ['Expected stock at the end', 'Units on the shelf at the end of the horizon', (t) => n0(t.expectedEnding), (t) => t.expectedEnding],
+    ['Estimated cost of today\'s request', 'Only where unit costs were entered in Step 2', (t) => t.costCoverage === 'none' ? null : gbp(t.initialOrderCost) + (t.costCoverage === 'partial' ? ' (some products have no cost)' : ''), (t) => t.initialOrderCost],
+  ];
+  const hasUtil = P.some((p) => pol[p].totals.utilisation);
+  const productIds = Object.keys(sim.inputs).sort((a, b) => {
+    const rank = { critical: 0, essential: 1, standard: 2 };
+    return rank[products[a].priority] - rank[products[b].priority] || pol.balanced.products[b].shortageProbability - pol.balanced.products[a].shortageProbability;
+  });
+  const cfg = sim.config;
+%>
 <p class="eyebrow">Step 4 of 5</p>
 <h1>Compare policies</h1>
-<p class="notice notice--info">This step hasn't been built yet.</p>
+<p class="lead"><strong><%= scenarioLabel %></strong> over <%= cfg.planningHorizonDays %> days. Every figure is an estimate from <%= cfg.numberOfRuns.toLocaleString('en-GB') %> simulated futures that all three policies share. No policy is best in every way: choose the trade-off that suits your food bank.</p>
+<p><a href="/scenario">Change the scenario</a></p>
+
+<section class="section">
+  <div class="table-scroll">
+    <table class="table compare-table">
+      <thead>
+        <tr>
+          <th scope="col">Measure</th>
+          <% for (const p of P) { %>
+          <th scope="col" class="num<%= selected === p ? ' is-selected' : '' %>">
+            <%= labels[p] %><%= selected === p ? ' (selected)' : '' %>
+            <span class="compare-table__desc"><%= sim.policyDescriptions[p] %></span>
+          </th>
+          <% } %>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const [label, hint, show, raw] of rowsDef) { %>
+        <tr>
+          <th scope="row"><%= label %><span class="hint"><%= hint %></span></th>
+          <% for (const p of P) { const t = pol[p].totals; const v = show(t); %>
+          <td class="num<%= selected === p ? ' is-selected' : '' %>">
+            <%- v === null ? insufficient : `<span class="metric">${v}</span>` %>
+            <%- p !== 'balanced' && raw && v !== null ? diff(raw(t), raw(pol.balanced.totals)) : '' %>
+          </td>
+          <% } %>
+        </tr>
+        <% } %>
+        <% if (hasUtil) { %>
+        <tr>
+          <th scope="row">Highest storage use<span class="hint">Peak share of the capacity you entered</span></th>
+          <% for (const p of P) { const u = pol[p].totals.utilisation || {}; %>
+          <td class="num<%= selected === p ? ' is-selected' : '' %> small"><%= Object.entries(u).map(([c, x]) => `${c.replace(/_/g, ' ')}: ${Math.round(x.max * 100)}%`).join('; ') %></td>
+          <% } %>
+        </tr>
+        <% } %>
+        <tr>
+          <th scope="row">Constraints</th>
+          <% for (const p of P) { const w = pol[p].warnings; %>
+          <td class="<%= selected === p ? 'is-selected' : '' %> small"><%- w.length ? w.map((x) => `<span class="issue issue--warning">${x.replace(/</g, '&lt;')}</span>`).join('') : 'None reported' %></td>
+          <% } %>
+        </tr>
+        <tr class="choose-row">
+          <th scope="row"></th>
+          <% for (const p of P) { %>
+          <td class="<%= selected === p ? 'is-selected' : '' %>">
+            <form method="post" action="/compare/select" data-busy="Preparing plan…">
+              <input type="hidden" name="policy" value="<%= p %>">
+              <button type="submit" class="button<%= selected === p ? '' : ' button--secondary' %>">Choose <%= labels[p] %></button>
+            </form>
+          </td>
+          <% } %>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Outcomes side by side</h2>
+  <div class="grid-2">
+    <div><h3>Shortage, waste and stock left</h3><div class="chart" id="chart-outcomes"></div></div>
+    <div><h3>How bad shortages get across futures</h3><div class="chart" id="chart-distribution"></div><p class="hint">Total unmet demand in each simulated future. Further right means worse.</p></div>
+  </div>
+  <h3>Chance of a shortage by product</h3>
+  <div class="chart chart--tall" id="chart-products"></div>
+</section>
+
+<section class="section">
+  <h2>By product</h2>
+  <div class="table-scroll">
+    <table class="table">
+      <thead>
+        <tr>
+          <th rowspan="2">Product</th><th rowspan="2">Priority</th><th rowspan="2" class="num">Stock now</th><th rowspan="2" class="num">Expected demand</th>
+          <% for (const p of P) { %><th colspan="2" class="num group-head<%= selected === p ? ' is-selected' : '' %>"><%= labels[p] %></th><% } %>
+        </tr>
+        <tr><% for (const p of P) { %><th class="num<%= selected === p ? ' is-selected' : '' %>">Request</th><th class="num<%= selected === p ? ' is-selected' : '' %>">Shortage chance</th><% } %></tr>
+      </thead>
+      <tbody>
+        <% for (const id of productIds) { const inp = sim.inputs[id]; const pr = products[id]; %>
+        <tr>
+          <td><%= pr.name %></td>
+          <td><span class="tag tag--<%= pr.priority %>"><%= pr.priority[0].toUpperCase() + pr.priority.slice(1) %></span></td>
+          <td class="num"><%= inp.currentStock %></td>
+          <td class="num"><%= Math.round(inp.expectedDemandHorizon) %></td>
+          <% for (const p of P) { const r = pol[p].products[id]; %>
+          <td class="num<%= selected === p ? ' is-selected' : '' %>"><%= r.initialOrder %></td>
+          <td class="num<%= selected === p ? ' is-selected' : '' %><%= r.shortageProbability >= 0.5 ? ' is-low' : '' %>"><%= pc(r.shortageProbability) %></td>
+          <% } %>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <p class="hint">Expected demand is the forecast for the <%= cfg.planningHorizonDays %>-day horizon after any scenario adjustment, in each product's unit.</p>
+</section>
+
+<section class="section">
+  <h2>Assumptions behind these results</h2>
+  <ul class="plain-list"><% for (const a of sim.assumptions) { %><li class="note"><%= a %></li><% } %></ul>
+  <p class="hint">
+    Checks: stock never negative <%= sim.checks.inventoryNonNegative ? 'passed' : 'FAILED' %>; stock balances (start + deliveries − served − waste = end) <%= sim.checks.inventoryBalances ? 'passed' : 'FAILED' %>; same demand and delivery outcomes for every policy (demand checksum <%= sim.checks.demandChecksum %>).
+    Calculation <%= sim.calculationVersion %>, run <%= new Date(sim.ranAt).toLocaleString('en-GB') %> in <%= sim.runtimeMs %> ms. Methods: <%= Object.values(sim.methods).join(', ') %>.
+  </p>
+</section>
+
+<script type="application/json" id="compare-data"><%- JSON.stringify({
+  labels,
+  selected,
+  totals: Object.fromEntries(P.map((p) => [p, pol[p].totals])),
+  distribution: sim.distribution.unmetTotal,
+  products: productIds.map((id) => ({ name: products[id].name, ...Object.fromEntries(P.map((p) => [p, pol[p].products[id].shortageProbability])) })),
+}).replace(/</g, '\\u003c') %></script>
 <%- include('partials/foot') %>

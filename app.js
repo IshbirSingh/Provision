@@ -37,6 +37,7 @@ app.use(session({
 }));
 
 app.locals.engine = { status: 'checking', detail: null };
+app.locals.nebius = { status: 'checking', detail: null };
 
 // Load the workspace once per request and expose what every page needs.
 app.use(async (req, res, next) => {
@@ -51,7 +52,7 @@ app.use(async (req, res, next) => {
   res.locals.currentPath = req.path;
   res.locals.flash = req.session.flash || null;
   res.locals.integrations = {
-    nebius: nebius.isConfigured(),
+    nebius: app.locals.nebius,
     tavily: tavilyService.isConfigured(),
     engine: app.locals.engine,
   };
@@ -82,6 +83,17 @@ app.get('/', (req, res) => {
       inputVersion: data.audit.inputVersion,
       finalisedPlans: Object.keys(data.audit.records).length,
     },
+    plans: Object.values(data.audit.records)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 10)
+      .map((r) => ({
+        id: r.id,
+        createdAt: r.createdAt,
+        createdBy: r.createdBy?.name,
+        policy: r.selectedPolicy,
+        scenario: r.scenarioLabel,
+        units: r.recommendation.summary.totalReplenish,
+      })),
   });
 });
 
@@ -119,12 +131,17 @@ async function checkEngine() {
   }
 }
 
+async function checkNebius() {
+  app.locals.nebius = await nebius.checkConnection();
+  if (app.locals.nebius.status === 'error') console.error('[app] Nebius check failed:', app.locals.nebius.detail);
+}
+
 if (require.main === module) {
   const port = Number(process.env.PORT) || 3000;
   storage.loadData()
     .then(() => {
       app.listen(port, () => console.log(`SupplyShield running at http://localhost:${port}`));
-      return checkEngine();
+      return Promise.all([checkEngine(), checkNebius()]);
     })
     .catch((err) => {
       console.error('[app] Could not start:', err.message);
@@ -132,4 +149,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { app, checkEngine };
+module.exports = { app, checkEngine, checkNebius };
