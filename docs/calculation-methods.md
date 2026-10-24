@@ -82,34 +82,35 @@ One configuration object covers all four scenarios. The approved baseline is cop
 
 Adjustments that don't belong to the chosen preset apply only when the manager ticks "Also apply".
 
-## Step 4: policies (`policies.py`, `order_up_to_horizon_quantile_v1`)
+## Step 4: policies (`policies.py`, `order_up_to_horizon_risk_target_v2`)
 
-The protection horizon is h = lead time + order period. Lean and Balanced use the approved lead time L. Resilient uses L′, so it plans for the scenario's extra delay.
+Each policy aims for a chance of running out at least once over the planning horizon:
 
-The target is T = ⌈F⁻¹(q)⌉ of demand over h. Demand over h is exact: a sum of h independent Poisson(μ) days is Poisson(hμ), and a sum of negative binomial days with shape 1 ÷ α is negative binomial with mean hμ and shape h ÷ α. Targets therefore never use the simulated futures being evaluated.
-
-| Policy | q | Reserve |
+| Policy | Target chance of running out | Reserve |
 | --- | --- | --- |
-| Lean | 0.50 | Not applied |
-| Balanced | 0.80 | T = max(T, B) |
-| Resilient | Critical 0.95, Essential 0.90, Standard 0.80 | T = max(T, B) |
+| Lean | about 40% | Not applied |
+| Balanced | about 25% | T = max(T, B) |
+| Resilient | Critical 5%, Essential 8%, Standard 10% | T = max(T, B) |
 
-The order is Q = max(0, T − IP), where IP is stock on hand plus stock on order, capped so on hand plus on order stays within the product's capacity. Shortfalls caused by capacity are reported, not hidden.
+**Calibration.** For each product, the order-up-to level T is the smallest level whose chance of a shortage after the first possible delivery meets the target. It is found by bisection on a separate set of 1,000 seeded simulations, never the 10,000 being evaluated (spec 5.6). Shortages before the first delivery depend only on current stock, so they are left out of the calibration and explained separately. Lean and Balanced are calibrated on the approved lead time and full deliveries. Resilient is calibrated on the scenario's actual delivery conditions, so only Resilient plans for disruption.
 
-**Fine-tuning.** After choosing a plan, the manager can set its protection level q between 50% and 99%. For Resilient this sets the critical level, and the essential and standard levels move by the same amount. Only that plan is re-simulated, with the same seed, so the demand checksum matches and it stays comparable with the other two.
+The order is Q = max(0, T − IP). IP counts stock on hand that will still be usable when the order arrives, plus stock on order. Orders are capped so that all stock held, including stock about to go out of date, stays within the product's space. Shortfalls caused by space are reported, not hidden.
 
-**Why a shortage chance is high.** For any product with a shortage chance of 20% or more, the plan states the reasons the numbers support:
+**Fine-tuning.** After choosing a plan, the manager can set its protection level, the chance of *not* running out, between 50% and 99%. For Resilient this sets the critical level, and the other levels move by the same amount. Only that plan is recalibrated and re-simulated, on the same futures (the demand checksum must match).
+
+**Order plan.** For each order day in the horizon, the plan shows the average order across the simulated futures. Today's order is fixed; later amounts are what's typically needed and should be checked against a fresh stock count first.
+
+**Why a shortage chance is high.** When a product's chance of running out is clearly above its plan's target (more than 10 points over the target, or 50% or more), the plan states the reasons the numbers support:
 
 - current stock is below the demand expected before the first delivery
 - no order can arrive within the horizon
-- storage space limits the order
-- scenario delays, smaller deliveries or higher demand
-- Lean's lower protection level
-- very changeable demand
+- not enough storage space to reach the target
+- delays, smaller deliveries or higher demand in the scenario
+- demand that changes a lot from week to week
 
 ## Step 4: simulation (`simulation.py`, `daily_fefo_monte_carlo_crn_v1`)
 
-The defaults are 1,000 futures per policy with seed 42. Demand for every future, day and product is pre-generated once (`gamma_poisson_mixture_v1`: Λ ~ Gamma(1 ÷ α, αμ), D ~ Poisson(Λ)), The same draws are used for all three policies. These are the common random numbers.
+The defaults are 10,000 futures per policy with seed 42. Demand for every future, day and product is pre-generated once (`gamma_poisson_mixture_v1`: Λ ~ Gamma(1 ÷ α, αμ), D ~ Poisson(Λ)), The same draws are used for all three policies. These are the common random numbers.
 
 Each day:
 
@@ -133,6 +134,7 @@ These checks run on every simulation and are stored with the results:
 
 - **Expected unmet demand:** the mean over futures of Σ unmet.
 - **Shortage chance:** the share of futures with any unmet demand over the horizon.
+- **Storage use:** the peak share of each storage type's space in use on an average day, from item sizes and simulated stock.
 - **Ending stock** and **average ordered:** means over futures.
 - **Expected waste:** reported only where dates or a shelf life exist; otherwise "Insufficient data".
 - **Shortage before the first delivery:** the share of futures that run short before day L′.

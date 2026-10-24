@@ -1,6 +1,6 @@
 """Monte Carlo inventory simulation (spec section 6).
 
-Daily time step, seeded runs (1,000 by default) per policy, common random
+Daily time step, seeded runs (10,000 by default) per policy, common random
 numbers shared across Lean, Balanced and Resilient.
 
 All runs are simulated together as NumPy arrays. Each product's stock is
@@ -30,6 +30,7 @@ import policies
 import scenario_model
 
 NEVER = 10 ** 9  # last-usable day for stock that does not expire
+CALIBRATION_RUNS = 1000
 PRIORITY_RANK = {"critical": 0, "essential": 1, "standard": 2}
 METHOD = "daily_fefo_monte_carlo_crn_v1"
 
@@ -79,11 +80,14 @@ def _build_slots(batches, order_days, arrivals, shelf_life):
     return expiry, init, order_slot
 
 
-def _simulate_policy(T, ctx):
+def _simulate_policy(T, ctx, full=True):
+    """Run one policy. full=False skips the per-day records (calibration)."""
     M, H, N, S, K = ctx["M"], ctx["H"], ctx["N"], ctx["S"], ctx["K"]
+    lead = ctx["lead"]  # (N,) days from order to arrival
+    short_after = np.zeros((M, N), dtype=bool)
     D, success = ctx["D"], ctx["success"]
     slot_exp = ctx["slot_exp"]
-    q = np.broadcast_to(ctx["slot_init"], (M, N, S)).copy()
+    q = np.broadcast_to(ctx["slot_init"], (M, N, S)).astype(np.int32)
     pend = np.zeros((M, N, K), dtype=np.int64)
     outstanding = np.zeros((M, N), dtype=np.int64)
     unmet = np.zeros((M, N), dtype=np.int64)
@@ -94,7 +98,7 @@ def _simulate_policy(T, ctx):
     first_short = np.full((M, N), -1, dtype=np.int64)
     cap_short = np.zeros(N)
     cap_events = np.zeros(N)
-    daily = np.zeros((H, M, N), dtype=np.int64)
+    daily = np.zeros((H, M, N), dtype=np.int32) if full else None
     util = [[] for _ in ctx["groups"]]
     initial_order = None
     min_stock = 0
@@ -108,17 +112,22 @@ def _simulate_policy(T, ctx):
             q[:, i, ctx["order_slot"][i][k]] += amount
             arrived[:, i] += amount
             outstanding[:, i] -= pend[:, i, k]
-        # 2. expiry (last usable day < today)
-        expired = slot_exp < t
+        # 2. expiry: batches whose last usable day was yesterday (or earlier, on day 0)
+        expired = (slot_exp < t) if t == 0 else (slot_exp == t - 1)
         if expired.any():
-            waste += (q * expired).sum(axis=2)
-            q[:, expired] = 0
+            rows, cols = np.nonzero(expired)
+            waste[:, rows] += q[:, rows, cols]
+            q[:, rows, cols] = 0
         # 3. ordering
         if t in ctx["order_index"]:
             k = ctx["order_index"][t]
-            position = q.sum(axis=2) + outstanding
+            # Stock that goes out of date before this order arrives can't
+            # cover the period the order is for, so it isn't counted.
+            usable = slot_exp >= (t + lead)[:, None]
+            position = (q * usable).sum(axis=2) + outstanding
             want = policies.order_quantities(T[None, :], position)
-            actual = policies.cap_by_capacity(want, position, ctx["groups"], ctx["rank"]) if ctx["groups"] else want
+            space_used = q.sum(axis=2) + outstanding
+            actual = policies.cap_by_capacity(want, space_used, ctx["groups"], ctx["rank"]) if ctx["groups"] else want
             short = want - actual
             cap_short += short.mean(axis=0)
             cap_events += (short > 0).mean(axis=0)
@@ -130,20 +139,25 @@ def _simulate_policy(T, ctx):
         # 4. demand, met first-expiry-first-out
         d = D[:, t, :]
         cum = np.cumsum(q, axis=2)
-        taken_cum = np.minimum(cum, d[:, :, None])
-        taken = np.diff(taken_cum, axis=2, prepend=0)
+        # Each batch gives what is still wanted after the earlier-dated ones.
+        taken = np.minimum(np.maximum(d[:, :, None] - (cum - q), 0), q)
         q -= taken
-        served = taken_cum[:, :, -1]
+        served = np.minimum(cum[:, :, -1], d)
         u = d - served
         unmet += u
         fulfilled_total += served
         first_short = np.where((first_short < 0) & (u > 0), t, first_short)
-        on_hand = q.sum(axis=2)
+        short_after |= (u > 0) & (t >= lead)[None, :]
+        if not full:
+            continue
+        on_hand = cum[:, :, -1] - served
         daily[t] = on_hand
         min_stock = min(min_stock, int(q.min()))
         for gi, (cap, idx) in enumerate(ctx["groups"]):
             util[gi].append(on_hand[:, idx].sum(axis=1) / cap if cap > 0 else np.zeros(M))
 
+    if not full:
+        return {"short_after": short_after}
     ending = q.sum(axis=2)
     balance_ok = bool(np.all(start + arrived - fulfilled_total - waste == ending))
     return {
@@ -161,6 +175,90 @@ def _simulate_policy(T, ctx):
         "groups": ctx["groups"],
         "checks": {"inventoryNonNegative": min_stock >= 0, "inventoryBalances": balance_ok},
     }
+
+
+def _build_ctx(products, states, ids, as_of, H, R, M, seed_seq, lead_key, s_a, p_success, caps, rank, notes):
+    """Slots, arrivals and pre-generated random inputs for one set of runs."""
+    N = len(ids)
+    order_days = list(range(0, H, R))
+    K = len(order_days)
+    lead = {pid: states[pid][lead_key] for pid in ids}
+    arrivals = {pid: [t + lead[pid] for t in order_days] for pid in ids}
+
+    slot_lists = []
+    for pid in ids:
+        p = products[pid]
+        batches = _initial_batches(p, as_of, notes)
+        shelf = p.get("shelfLifeDays")
+        slot_lists.append(_build_slots(batches, order_days, arrivals[pid], int(shelf) if shelf else None))
+    S = max(len(sl[0]) for sl in slot_lists)
+    slot_exp = np.full((N, S), NEVER, dtype=np.int64)
+    slot_init = np.zeros((N, S), dtype=np.int64)
+    order_slot = []
+    for i, (exp, init, oslot) in enumerate(slot_lists):
+        slot_exp[i, : len(exp)] = exp
+        slot_init[i, : len(init)] = init
+        order_slot.append(oslot)
+
+    arrivals_by_day = {}
+    for i, pid in enumerate(ids):
+        for k, a in enumerate(arrivals[pid]):
+            if a < H:
+                arrivals_by_day.setdefault(a, []).append((i, k))
+
+    groups = [(int(caps[pid]), [i]) for i, pid in enumerate(ids) if caps.get(pid) is not None]
+
+    # Common random numbers: separate seeded streams, generated once.
+    demand_seq, delivery_seq = seed_seq.spawn(2)
+    rng_demand = np.random.default_rng(demand_seq)
+    rng_delivery = np.random.default_rng(delivery_seq)
+    D = np.empty((M, H, N), dtype=np.int32)
+    for i, pid in enumerate(ids):
+        st = states[pid]
+        D[:, :, i] = demand_model.sample(rng_demand, st["mu"], st["alpha"], (M, H))
+    success = (rng_delivery.random((M, N, K)) < p_success).astype(np.int64)
+
+    return {
+        "M": M, "H": H, "N": N, "S": S, "K": K, "D": D, "success": success,
+        "slot_exp": slot_exp, "slot_init": slot_init, "order_slot": order_slot,
+        "order_index": {t: k for k, t in enumerate(order_days)},
+        "arrivals_by_day": arrivals_by_day, "groups": groups, "rank": rank,
+        "s_a": s_a, "lead": np.array([lead[pid] for pid in ids], dtype=np.int64),
+        "order_days": order_days,
+    }
+
+
+def _calibrate(tg, risk, cal, states, ids, R, reserve_policy):
+    """Smallest order-up-to level per product whose chance of a shortage after
+    the first possible delivery is at most its risk target, found by
+    bisection on a separate set of seeded runs (spec 5.6: never the runs
+    being evaluated). Shortages before the first delivery depend only on
+    current stock, so they are excluded here and reported separately."""
+    N = len(ids)
+    lo = np.zeros(N, dtype=np.int64)
+    hi = np.empty(N, dtype=np.int64)
+    for i, pid in enumerate(ids):
+        st = states[pid]
+        h = int(tg["horizon"][i]) + R
+        hi[i] = max(2, int(demand_model.horizon_quantile(st["mu"], st["alpha"], h, 0.9999) * 1.5) + 5)
+    reachable = _simulate_policy(hi, cal, full=False)["short_after"].mean(axis=0) <= risk
+    for _ in range(16):
+        open_ = (hi - lo) > 1
+        if not open_.any():
+            break
+        mid = (lo + hi) // 2
+        p = _simulate_policy(np.where(open_, mid, hi), cal, full=False)["short_after"].mean(axis=0)
+        ok = p <= risk
+        hi = np.where(open_ & ok, mid, hi)
+        lo = np.where(open_ & ~ok, mid, lo)
+    T = hi.copy()
+    binding = [False] * N
+    if reserve_policy:
+        for i, pid in enumerate(ids):
+            r = states[pid]["reserveUnits"]
+            if r is not None and r > T[i]:
+                T[i], binding[i] = r, True
+    return T, binding, reachable
 
 
 def run(payload):
@@ -182,59 +280,29 @@ def run(payload):
     targets = policies.targets(states, ids, priorities, R, H, payload.get("policyLevels"))
     notes = []
 
-    # Order days and actual arrival days (every policy faces the real delay).
-    order_days = list(range(0, H, R))
-    K = len(order_days)
-    arrivals = {pid: [t + states[pid]["leadTimeDisrupted"] for t in order_days] for pid in ids}
-
-    slot_lists = []
-    for pid in ids:
-        p = products[pid]
-        batches = _initial_batches(p, as_of, notes)
-        shelf = p.get("shelfLifeDays")
-        slot_lists.append(_build_slots(batches, order_days, arrivals[pid], int(shelf) if shelf else None))
-    S = max(len(s[0]) for s in slot_lists)
-    slot_exp = np.full((N, S), NEVER, dtype=np.int64)
-    slot_init = np.zeros((N, S), dtype=np.int64)
-    order_slot = []
-    for i, (exp, init, oslot) in enumerate(slot_lists):
-        slot_exp[i, : len(exp)] = exp
-        slot_init[i, : len(init)] = init
-        order_slot.append(oslot)
-
-    arrivals_by_day = {}
-    for i, pid in enumerate(ids):
-        for k, a in enumerate(arrivals[pid]):
-            if a < H:
-                arrivals_by_day.setdefault(a, []).append((i, k))
-
-    # Capacity per product, derived in Step 2 from storage space (capacity.py).
     caps = g.get("productCapacity") or {}
-    groups = []
-    group_cats = []
-    for i, pid in enumerate(ids):
-        if caps.get(pid) is not None:
-            groups.append((int(caps[pid]), [i]))
-            group_cats.append(pid)
-
-    # Common random numbers: separate seeded streams, generated once.
-    demand_seq, delivery_seq = np.random.SeedSequence(cfg["randomSeed"]).spawn(2)
-    rng_demand = np.random.default_rng(demand_seq)
-    rng_delivery = np.random.default_rng(delivery_seq)
-    D = np.empty((M, H, N), dtype=np.int64)
-    for i, pid in enumerate(ids):
-        s = states[pid]
-        D[:, :, i] = demand_model.sample(rng_demand, s["mu"], s["alpha"], (M, H))
-    success = (rng_delivery.random((M, N, K)) < p_success).astype(np.int64)
+    seed_seq = np.random.SeedSequence(cfg["randomSeed"])
+    ctx = _build_ctx(products, states, ids, as_of, H, R, M, seed_seq, "leadTimeDisrupted",
+                     states[ids[0]]["supplyMultiplier"], p_success, caps, rank, notes)
+    order_days = ctx["order_days"]
+    D = ctx["D"]
     demand_checksum = hashlib.sha256(D.tobytes()).hexdigest()[:16]
+    group_cats = [pid for pid in ids if caps.get(pid) is not None]
 
-    ctx = {
-        "M": M, "H": H, "N": N, "S": S, "K": K, "D": D, "success": success,
-        "slot_exp": slot_exp, "slot_init": slot_init, "order_slot": order_slot,
-        "order_index": {t: k for k, t in enumerate(order_days)},
-        "arrivals_by_day": arrivals_by_day, "groups": groups, "rank": rank,
-        "s_a": states[ids[0]]["supplyMultiplier"],
+    # Calibration runs use their own seed. Lean and Balanced are calibrated
+    # on the approved lead time and full deliveries; Resilient on the
+    # scenario's actual delivery conditions, so only it plans for them.
+    cal_seq = np.random.SeedSequence([cfg["randomSeed"], 7919])
+    cal_ctx = {
+        "nominal": _build_ctx(products, states, ids, as_of, H, R, CALIBRATION_RUNS, cal_seq, "leadTime", 1.0, p_success, caps, rank, []),
+        "actual": _build_ctx(products, states, ids, as_of, H, R, CALIBRATION_RUNS, cal_seq, "leadTimeDisrupted",
+                             states[ids[0]]["supplyMultiplier"], p_success, caps, rank, []),
     }
+    for policy in cfg["policyIds"]:
+        tg = targets[policy]
+        risk = np.array([tg["riskTarget"][priorities[pid]] for pid in ids])
+        T, binding, reachable = _calibrate(tg, risk, cal_ctx["actual" if policy == "resilient" else "nominal"], states, ids, R, policy != "lean")
+        tg["target"], tg["reserveBinding"], tg["reachable"] = T, binding, [bool(x) for x in reachable]
 
     has_expiry = [bool(products[pid].get("shelfLifeDays")) or any(b.get("expiryDate") for b in products[pid].get("batches") or []) for pid in ids]
     protected = [i for i, pid in enumerate(ids) if priorities[pid] in ("critical", "essential")]
@@ -360,6 +428,7 @@ def _summarise(policy, sim, T, tg, ids, products, states, has_expiry, protected,
             "capacityShortfallPerOrder": metrics.r(sim["cap_short"][i], 2),
             "capacityLimitedShare": metrics.r(sim["cap_events"][i], 3),
             "riskTarget": tg["riskTarget"][products[pid]["priority"]],
+            "riskTargetReachable": tg["reachable"][i],
             # Typical order on each order day (expected; re-check before ordering).
             "schedule": [
                 {"day": int(t), "mean": metrics.r(float(orders[:, i, k].mean()), 1), "orderedShare": metrics.r(float((orders[:, i, k] > 0).mean()), 3)}

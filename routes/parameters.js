@@ -25,8 +25,7 @@ const DEFAULT_GLOBAL = {
   leadTimeDays: 7,
   deliverySuccessProbability: 1.0,
   reserveDays: 7,
-  quantiles: { lean: 0.5, balanced: 0.8, resilient: { critical: 0.95, essential: 0.9, standard: 0.8 } },
-  runs: 1000,
+  runs: 10000,
   seed: 42,
 };
 const SHELF_LIFE_DAYS = {
@@ -233,7 +232,7 @@ function renderPage(res, data, { errors = [], status = 200 } = {}) {
     priorities: catalog.PRIORITIES,
     categories: catalog.CATEGORIES,
     errors,
-    scripts: ['/vendor/plotly.min.js', '/vendor/katex/katex.min.js', '/js/charts.js', '/js/maths.js'],
+    scripts: ['/vendor/plotly.min.js', '/js/charts.js'],
   });
 }
 
@@ -274,7 +273,7 @@ function parseForm(body, data) {
     reviewPeriodDays: take('Order every', g.reviewPeriodDays, { min: 1, max: 28, integer: true }),
     leadTimeDays: take('Usual lead time', g.leadTimeDays, { min: 0, max: 60, integer: true }),
     reserveDays: take('Emergency reserve', g.reserveDays, { min: 0, max: 21, integer: true }),
-    runs: data.parameters.global.runs || DEFAULT_GLOBAL.runs,
+    runs: DEFAULT_GLOBAL.runs,
     seed: data.parameters.global.seed ?? DEFAULT_GLOBAL.seed,
     productCapacity: data.parameters.global.productCapacity || {},
   };
@@ -286,10 +285,11 @@ function parseForm(body, data) {
     const label = product.name;
     const before = data.parameters.products[id] || {};
     const weekly = take(`${label}: weekly demand`, f.weeklyDemand, { min: 0, allowBlank: true });
-    const sd = take(`${label}: variability`, f.weeklySd, { min: 0, allowBlank: true });
+    // Variability isn't on the form; it stays as estimated unless sent.
+    const sd = f.weeklySd === undefined ? undefined : take(`${label}: variability`, f.weeklySd, { min: 0, allowBlank: true });
     const p = {
       dailyDemand: weekly === null || weekly === undefined ? null : weekly / 7,
-      dailyVariance: sd === null || sd === undefined ? null : (sd * sd) / 7,
+      dailyVariance: sd === undefined ? before.dailyVariance ?? null : sd === null ? null : (sd * sd) / 7,
       seasonalMultiplier: before.seasonalMultiplier ?? 1,
       currentStock: take(`${label}: stock now`, f.currentStock, { min: 0, integer: true }),
       leadTimeDays: take(`${label}: lead time`, f.leadTimeDays, { min: 0, max: 60, integer: true }),
@@ -303,7 +303,7 @@ function parseForm(body, data) {
     const shown = displayValues(before);
     const changed = {
       dailyDemand: shown.weeklyDemand !== round(weekly, 1),
-      dailyVariance: shown.weeklySd !== round(sd, 1),
+      dailyVariance: sd !== undefined && shown.weeklySd !== round(sd, 1),
       currentStock: (before.currentStock ?? null) !== p.currentStock,
       leadTimeDays: (before.leadTimeDays ?? null) !== p.leadTimeDays,
       shelfLifeDays: (before.shelfLifeDays ?? null) !== p.shelfLifeDays,

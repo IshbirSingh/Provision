@@ -107,7 +107,7 @@ test('Step 1: stages the sample file for review', async () => {
   assert.equal(res.headers.get('location'), '/review');
   const html = await (await request('/review')).text();
   assert.match(html, /Baked Beans 415g/);
-  assert.match(html, /header matching and keyword rules/);
+  assert.doesNotMatch(html, /What the counts show|Interpreted by/);
   assert.equal(Object.keys(readData().historicalStock).length, 0, 'nothing is approved yet');
 });
 
@@ -166,24 +166,15 @@ function parameterForm(data, overrides = {}) {
     'global[planningHorizonDays]': g.planningHorizonDays,
     'global[reviewPeriodDays]': g.reviewPeriodDays,
     'global[leadTimeDays]': g.leadTimeDays,
-    'global[deliverySuccessPercent]': Math.round(g.deliverySuccessProbability * 100),
     'global[reserveDays]': g.reserveDays,
-    'global[qLean]': g.quantiles.lean,
-    'global[qBalanced]': g.quantiles.balanced,
-    'global[qCritical]': g.quantiles.resilient.critical,
-    'global[qEssential]': g.quantiles.resilient.essential,
-    'global[qStandard]': g.quantiles.resilient.standard,
   };
   const r1 = (x) => (x === null ? '' : String(Math.round(x * 10) / 10));
   for (const [id, p] of Object.entries(data.parameters.products)) {
     form[`p[${id}][priority]`] = data.products[id].priority;
     form[`p[${id}][currentStock]`] = p.currentStock;
     form[`p[${id}][weeklyDemand]`] = p.dailyDemand === null ? '' : r1(7 * p.dailyDemand);
-    form[`p[${id}][weeklySd]`] = p.dailyVariance === null ? '' : r1(Math.sqrt(7 * Math.max(p.dailyVariance, p.dailyDemand)));
-    form[`p[${id}][seasonalMultiplier]`] = Math.round(p.seasonalMultiplier * 1000) / 1000;
     form[`p[${id}][leadTimeDays]`] = p.leadTimeDays;
     form[`p[${id}][shelfLifeDays]`] = p.shelfLifeDays ?? '';
-    form[`p[${id}][unitCost]`] = p.unitCost ?? '';
   }
   return { ...form, ...overrides };
 }
@@ -250,7 +241,7 @@ test('Step 3-4: a disruption scenario runs the simulation for all three policies
   assert.equal(sim.config.additionalDeliveryDelayDays, 7);
   assert.equal(sim.config.deliveryQuantityReduction, 0.2);
   assert.equal(sim.config.demandIncrease, 0.1);
-  assert.equal(sim.config.numberOfRuns, 1000);
+  assert.equal(sim.config.numberOfRuns, 10000);
   assert.equal(data.audit.calculationVersion, sim.calculationVersion);
   assert.ok(sim.checks.inventoryNonNegative && sim.checks.inventoryBalances);
   const html = await (await request('/compare')).text();
@@ -298,7 +289,7 @@ test('Step 5: fine-tuning re-runs only the chosen plan on the same futures', asy
   assert.equal(data.simulation.policies.balanced.products.pasta_500g.target, standardTarget, 'standard results kept for comparison');
   assert.match(await (await request('/plan')).text(), /Balanced at 95%/);
 
-  await request('/plan/fine-tune', { method: 'POST', form: { level: '80' } });
+  await request('/plan/fine-tune', { method: 'POST', form: { level: '75' } });
   assert.equal(readData().recommendations.fineTune, null, 'back to standard');
   assert.equal(readData().simulation.fineTuned, undefined);
 });
@@ -312,7 +303,7 @@ test('Step 5: finalising freezes an audit record that can be downloaded', async 
   assert.equal(record.status, 'finalised');
   assert.equal(record.selectedPolicy, 'balanced');
   assert.equal(record.calculation.seed, 42);
-  assert.equal(record.calculation.runs, 1000);
+  assert.equal(record.calculation.runs, 10000);
   assert.ok(record.explanations.finalPlan.sections.request.length);
   assert.equal(record.explanations.finalPlan.calculationVersion, record.calculation.calculationVersion);
   assert.ok(record.policies.lean && record.policies.resilient, 'all three policies are kept');

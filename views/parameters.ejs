@@ -64,13 +64,13 @@
 
 <section class="section">
   <h2>Products</h2>
-  <p class="hint">Weekly demand is estimated from falls in stock between counts. The adjustment is worked out from your own records for school holidays and weather (see below) and is applied automatically.</p>
+  <p class="hint">Weekly demand is estimated from falls in stock between counts, and adjusted automatically for school holidays and weather where your records show an effect.</p>
   <div class="table-scroll">
     <table class="table table--form table--params">
       <thead>
         <tr>
           <th>Product</th><th>Priority</th><th class="num">Stock now</th><th class="num">Days of cover</th>
-          <th class="num">Weekly demand</th><th class="num">Variability</th><th class="num">Adjustment</th>
+          <th class="num">Weekly demand</th>
           <th class="num">Lead time</th><th class="num">Shelf life</th><th></th>
         </tr>
       </thead>
@@ -80,7 +80,7 @@
         <tr>
           <td><strong><%= r.product.name %></strong><br><span class="small"><%= categories[r.product.category].label %> · <%= r.product.unit || 'units' %></span></td>
           <td>
-            <select name="p[<%= r.id %>][priority]" aria-label="Priority for <%= r.product.name %>">
+            <select name="p[<%= r.id %>][priority]" class="prio-select" data-value="<%= r.product.priority %>" aria-label="Priority for <%= r.product.name %>">
               <% for (const [pid, pr] of Object.entries(priorities)) { %><option value="<%= pid %>"<%= r.product.priority === pid ? ' selected' : '' %>><%= pr.label %></option><% } %>
             </select>
           </td>
@@ -90,8 +90,6 @@
             <input name="p[<%= r.id %>][weeklyDemand]" type="number" min="0" step="0.1" class="input--num" value="<%= r.weeklyDemand ?? '' %>" aria-label="Weekly demand"><%- src(p, 'dailyDemand') %>
             <% if (dm.weeklyCi95 && p.sources?.dailyDemand !== 'manual') { %><span class="hint nowrap">likely <%= fmt(dm.weeklyCi95[0], 0) %>–<%= fmt(dm.weeklyCi95[1], 0) %></span><% } %>
           </td>
-          <td class="num"><input name="p[<%= r.id %>][weeklySd]" type="number" min="0" step="0.1" class="input--num" value="<%= r.weeklySd ?? '' %>" aria-label="Weekly variability"><%- src(p, 'dailyVariance') %></td>
-          <td class="num"><%= pctSigned(p.seasonalMultiplier ?? 1) %></td>
           <td class="num"><input name="p[<%= r.id %>][leadTimeDays]" type="number" min="0" max="60" step="1" class="input--num input--narrow" value="<%= p.leadTimeDays %>" aria-label="Lead time (days)"><%- src(p, 'leadTimeDays') %></td>
           <td class="num"><input name="p[<%= r.id %>][shelfLifeDays]" type="number" min="1" step="1" class="input--num input--narrow" value="<%= p.shelfLifeDays ?? '' %>" placeholder="none" aria-label="Shelf life (days)"><%- src(p, 'shelfLifeDays') %></td>
           <td><a href="#detail-<%= r.id %>" class="detail-link<%= warnings.length ? ' detail-link--warn' : '' %>"><%= warnings.length ? `${warnings.length} to check` : 'Details' %></a></td>
@@ -100,7 +98,7 @@
       </tbody>
     </table>
   </div>
-  <p class="hint">Days of cover is stock now ÷ adjusted daily demand, in red when it's shorter than the planning horizon. Variability is the usual week-to-week spread. Lead time and shelf life are in days; leave shelf life blank if the item doesn't go out of date within the horizon.</p>
+  <p class="hint">Days of cover is how long current stock lasts, in red when it's shorter than the plan. Lead time and shelf life are in days; leave shelf life blank if the item doesn't go out of date.</p>
 </section>
 
 <div class="button-row approve-box">
@@ -207,30 +205,15 @@
       <% } %>
       <div class="detail__chart" data-chart="stock" data-series="<%= JSON.stringify(a.chart) %>" data-unit="<%= r.product.unit || 'unit' %>"></div>
 
-      <div class="explain">
-        <div class="explain__block">
-          <h3>Demand</h3>
-          <% if (dm.available) { %>
-            <p>Stock fell in <%= dm.intervalsUsed %> of <%= o.intervals %> intervals between counts, by <%= fmt(dm.unitsObserved, 0) %> in total over <%= dm.daysObserved %> days.</p>
-            <p class="formula" data-tex="\hat\mu = \frac{\sum c}{\sum L} = \frac{<%= dm.unitsObserved %>}{<%= dm.daysObserved %>} = <%= fmt(dm.dailyMean, 2) %>\ \text{a day} = <%= fmt(dm.weeklyMean, 1) %>\ \text{a week}" data-display="block"></p>
-            <p class="hint">Intervals with a delivery (<%= o.byType.rise %>), ending with no stock (<%= o.byType.censored %>) or explained by notes (<%= o.byType.excluded %>) don't show demand, so they aren't used.</p>
-            <p class="formula" data-tex="<%= dm.model === 'negative_binomial' ? `D \\sim \\mathrm{NegBin}(\\mu,\\ \\alpha = ${fmt(dm.dispersionAlpha, 3)}),\\qquad \\mathrm{Var}(D) = \\mu + \\alpha\\mu^2` : 'D \\sim \\mathrm{Poisson}(\\mu),\\qquad \\mathrm{Var}(D) = \\mu' %>" data-display="block"></p>
-            <p class="hint"><%= dm.model === 'negative_binomial' ? 'Demand varies more than chance alone explains, so the simulation uses a negative binomial distribution.' : 'Demand varies about as much as chance alone, so the simulation uses a Poisson distribution.' %></p>
-          <% } else { %>
-            <p>Too few falls in stock to estimate demand. Enter a weekly figure above.</p>
-          <% } %>
-        </div>
-        <div class="explain__block">
-          <h3>Holidays and weather</h3>
-          <% for (const line of adj.explanation || []) { %><p><%= line %></p><% } %>
-          <% if (dm.available && Math.round(((adj.multiplier ?? 1) - 1) * 100) !== 0) { %>
-            <p class="formula" data-tex="\mu = \hat\mu \times <%= adj.multiplier %> = <%= fmt(dm.dailyMean * adj.multiplier, 2) %>\ \text{a day}" data-display="block"></p>
-          <% } %>
-          <% if (t.available && t.clear) { %><p>Consumption has been <%= t.percentPerMonth > 0 ? 'rising' : 'falling' %> by about <%= fmt(Math.abs(t.percentPerMonth), 0) %>% a month. This isn't applied automatically; change weekly demand if you expect it to continue.</p><% } %>
-          <h3>Deliveries seen</h3>
-          <p><%= sup.rises %> rises in stock<%= sup.medianDaysBetweenRises ? `, usually ${fmt(sup.medianDaysBetweenRises, 0)} days apart` : '' %><%= sup.estimatedDeliverySize ? `, typically about ${fmt(sup.estimatedDeliverySize, 0)} at a time` : '' %>.</p>
-        </div>
-      </div>
+      <ul class="plain-facts">
+        <% if (dm.available) { %>
+        <li>About <strong><%= fmt(dm.weeklyMean, 0) %> a week</strong>, based on <%= dm.intervalsUsed %> weeks when stock went down.</li>
+        <% } else { %>
+        <li>Not enough weeks when stock went down to estimate demand. Enter a weekly figure above.</li>
+        <% } %>
+        <% for (const line of adj.explanation || []) { %><li><%= line %></li><% } %>
+        <% if (t.available && t.clear) { %><li>Use has been <%= t.percentPerMonth > 0 ? 'rising' : 'falling' %> by about <%= fmt(Math.abs(t.percentPerMonth), 0) %>% a month (not applied automatically).</li><% } %>
+      </ul>
 
       <% if (ex.batches?.length) { %>
       <h3>Current stock by date</h3>

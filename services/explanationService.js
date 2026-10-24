@@ -70,8 +70,14 @@ function comparisons(rec, sim) {
   return out;
 }
 
+// "6 November 2026" for day n of the plan.
+function dayToDate(asOf, n) {
+  return longDate(new Date(Date.parse(asOf + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10));
+}
+
 function buildFacts(rec, sim, reviewPeriodDays) {
   const cfg = sim.config;
+  const asOf = sim.asOf || new Date().toISOString().slice(0, 10);
   const rows = rec.order.map((id) => rec.products[id]);
   const totals = (t) => {
     return {
@@ -89,6 +95,7 @@ function buildFacts(rec, sim, reviewPeriodDays) {
     otherPolicies: otherPlans(rec).map(([, label]) => label),
     planningHorizonDays: cfg.planningHorizonDays,
     orderReviewEveryDays: reviewPeriodDays,
+    today: longDate(asOf),
     simulatedFutures: cfg.numberOfRuns,
     scenario: scenarioLines(cfg),
     products: rows.map((r) => ({
@@ -108,6 +115,8 @@ function buildFacts(rec, sim, reviewPeriodDays) {
       expiringSoon: r.expiring.quantity ? { quantity: r.expiring.quantity, earliestBestBefore: longDate(r.expiring.earliestDate) } : null,
       expectedWaste: r.expectedWaste === null ? 'insufficient data' : int(r.expectedWaste),
       whyShortageRiskIsHigh: r.riskReasons?.length ? r.riskReasons : null,
+      // Typical order on each order day in the plan (day 0 is firm).
+      orderPlan: (r.schedule || []).filter((x) => Math.round(x.mean) > 0).map((x) => ({ day: x.day, date: dayToDate(asOf, x.day), about: Math.round(x.mean) })),
       otherPolicies: Object.fromEntries(Object.entries(r.alternatives).map(([p, a]) => [p === rec.selectedPolicy ? `${POLICY_LABELS[p]} (standard)` : POLICY_LABELS[p], { requestNow: a.replenish, chanceOfShortage: pct(a.shortageRisk) }])),
     })),
     policyTotals: Object.fromEntries([
@@ -251,6 +260,20 @@ function cleanSections(answer, keys, allowed) {
 
 // --- Templates (no AI) --------------------------------------------------------
 
+// One sentence per future order date, from the order plan.
+function orderDates(rows) {
+  const byDate = new Map();
+  for (const r of rows) {
+    for (const o of r.orderPlan || []) {
+      if (o.day === 0) continue;
+      if (!byDate.has(o.date)) byDate.set(o.date, { day: o.day, items: [] });
+      byDate.get(o.date).items.push(`about ${o.about} ${r.unit || 'unit'}s of ${r.product}`);
+    }
+  }
+  return [...byDate.entries()].sort((a, b) => a[1].day - b[1].day).slice(0, 4)
+    .map(([date, x]) => `On ${date}, expect to order ${x.items.slice(0, 4).join(', ')}${x.items.length > 4 ? ' and others' : ''}.`);
+}
+
 function templateActionPlan(facts) {
   const rows = facts.products;
   const requests = rows.filter((r) => r.requestNow > 0);
@@ -263,7 +286,8 @@ function templateActionPlan(facts) {
       ? requests.map((r) => `${r.product}: request ${units(r.requestNow, r.unit)} (order-up-to target ${r.orderUpToTarget}).`)
       : ['No replenishment is needed now under this policy: stock and expected deliveries already reach every target.'],
     whenToAct: [
-      `Place the request today. In the simulation, today's order arrives on day ${Math.min(...rows.map((r) => r.earliestDeliveryDay))} at the earliest, and orders are reviewed every ${facts.orderReviewEveryDays} days after that.`,
+      `Place today's request now. It arrives on day ${Math.min(...rows.map((r) => r.earliestDeliveryDay))} at the earliest.`,
+      ...orderDates(rows),
       ...rows.filter((r) => r.urgency === 'act_now').map((r) => `${r.product} has a ${r.chanceOfRunningOutBeforeFirstDelivery} chance of running out before any delivery can arrive. Look for stock you can get sooner.`),
     ],
     immediatePriorities: [
@@ -319,7 +343,7 @@ Each item is one sentence of at most 35 words. Reply with one JSON object only.`
 
 const ACTION_TASK = {
   whatToRequest: 'Products to request now, with the exact requestNow quantities and units. Skip products with requestNow 0.',
-  whenToAct: 'One or two full sentences on when to act, using only "today", earliestDeliveryDay, orderReviewEveryDays and typicalDayShortageStarts.',
+  whenToAct: 'The order plan for at least the next 14 days: for each order date in orderPlan, which products to order and about how much. Use the dates and amounts exactly as given; say "about" for later amounts.',
   immediatePriorities: 'Critical and essential shortage risks and items expiring soon. For any high chance of shortage, give the reason from whyShortageRiskIsHigh.',
   risksAndTradeoffs: 'How the selected policy differs from the other two, using policyTotals.',
   contingency: 'What to consider if the scenario conditions happen. Only actions supported by the facts.',

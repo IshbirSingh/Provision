@@ -1,17 +1,9 @@
 <%- include('partials/head', { title }) %>
 <%
-  const methodText = staging.method === 'nebius'
-    ? `Interpreted by ${staging.model} (Nebius)`
-    : staging.method === 'manual' ? 'Entered by hand' : 'Interpreted by header matching and keyword rules';
   const productList = Object.entries(staging.products).sort((a, b) => a[1].name.localeCompare(b[1].name));
-  const dayLabel = (n) => n === null ? '–' : n === 7 ? 'Weekly' : n === 14 ? 'Fortnightly' : n === 1 ? 'Daily' : `${n} days`;
 %>
 <p class="eyebrow">Step 1 of 5</p>
 <h1>Review extracted records</h1>
-<p class="lead">
-  <%= staging.sourceFile || 'Manual entry' %><% if (staging.headers && staging.headers.length) { %> · <%= counts.total %> rows<% } %> · <%= methodText %>.
-  Check the products and any flagged rows, then approve. Nothing is used until you approve it.
-</p>
 
 <div class="status-bar" id="status-bar" aria-live="polite">
   <span><strong id="count-ok"><%= counts.ok %></strong> ready</span>
@@ -48,7 +40,7 @@
             </select>
           </td>
           <td>
-            <select name="priority" aria-label="Priority">
+            <select name="priority" class="prio-select" data-value="<%= p.priority %>" aria-label="Priority">
               <% for (const [pid, pr] of Object.entries(priorities)) { %><option value="<%= pid %>"<%= p.priority === pid ? ' selected' : '' %>><%= pr.label %></option><% } %>
             </select>
           </td>
@@ -74,39 +66,6 @@
   </form>
 </section>
 
-<% if (productList.length) { %>
-<section class="section">
-  <h2>What the counts show</h2>
-  <p>Rises between counts suggest deliveries or donations. Falls are <em>inferred consumption</em>: they may also include waste, transfers or corrections, which stock counts alone can't tell apart. Step 2 analyses these in detail.</p>
-  <div class="table-scroll">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Product</th><th class="num">Counts</th><th>Period</th><th>Counted</th>
-          <th class="num">Rises</th><th class="num">Falls</th><th class="num">Times at zero</th>
-          <th class="num">Latest count</th><th>Earliest best-before</th><th class="num">Rows to check</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% for (const [id, p] of productList) { const s = patterns[id]; %>
-        <tr>
-          <td><%= p.name %></td>
-          <td class="num"><%= s.counts %></td>
-          <td class="nowrap"><%= s.from ? `${s.from} to ${s.to}` : '–' %></td>
-          <td><%= dayLabel(s.typicalIntervalDays) %></td>
-          <td class="num"><%= s.rises %></td>
-          <td class="num"><%= s.falls %></td>
-          <td class="num"><%= s.zeroCounts ? s.zeroCounts : '–' %></td>
-          <td class="num"><%= s.latestStock ?? '–' %></td>
-          <td><%= s.earliestExpiry || 'Not recorded' %></td>
-          <td class="num"><%= s.flaggedRows || '–' %></td>
-        </tr>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
-</section>
-<% } %>
 
 <% if (staging.headers && staging.headers.length) { %>
 <section class="section" id="columns">

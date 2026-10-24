@@ -183,6 +183,26 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(safe["policies"]["balanced"]["products"]["rice"]["target"], 210)  # ceil(21 * 10)
         self.assertEqual(safe["policies"]["lean"]["products"]["rice"]["target"], base["policies"]["lean"]["products"]["rice"]["target"])
 
+    def test_policies_hit_their_shortage_risk_targets(self):
+        # A well-stocked product with a 28-day horizon: Lean about 40%,
+        # Balanced about 25%, Resilient under 10%.
+        out = simulation.run(payload({"rice": product(mu=12, var=40, stock=150, lead=7)}, runs=4000, horizon=28))
+        p = {k: v["products"]["rice"]["shortageProbability"] for k, v in out["policies"].items()}
+        self.assertAlmostEqual(p["lean"], 0.40, delta=0.08)
+        self.assertAlmostEqual(p["balanced"], 0.25, delta=0.07)
+        self.assertLess(p["resilient"], 0.12)
+
+    def test_stock_expiring_before_arrival_is_not_counted(self):
+        # 50 apples that expire tomorrow don't stop an order being placed today.
+        batches = [{"quantity": 50, "expiryDate": "2026-10-25"}]
+        out = simulation.run(payload({"apples": product("Apples", "standard", mu=5, stock=50, lead=3, shelf=10, batches=batches, category="fresh_produce")}, horizon=21))
+        self.assertGreater(out["policies"]["balanced"]["products"]["apples"]["initialOrder"], 0)
+
+    def test_order_schedule_covers_each_order_day(self):
+        out = simulation.run(payload({"rice": product()}, horizon=28))
+        sched = out["policies"]["balanced"]["products"]["rice"]["schedule"]
+        self.assertEqual([x["day"] for x in sched], [0, 7, 14, 21])
+
     def test_capacity_caps_orders(self):
         prods = {"rice": product(stock=0), "pasta": product("Pasta", priority="standard", stock=0)}
         out = simulation.run(payload(prods, capacity={"rice": 30, "pasta": 20}))
@@ -201,7 +221,7 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(tuned["policyLevels"]["balanced"]["essential"], 0.95)
         # Resilient keeps its priority spacing when fine-tuned.
         res = simulation.run({**payload(prods), "policyLevels": {"resilient": 0.99}})
-        self.assertAlmostEqual(res["policyLevels"]["resilient"]["essential"], 0.94)
+        self.assertAlmostEqual(res["policyLevels"]["resilient"]["essential"], 0.96)  # 8% risk moved down by 4 points
 
     def test_fefo_uses_earliest_dated_stock_first(self):
         # 40 units expire in 5 days, 40 later. At 10/day FEFO uses the early batch first: no waste.

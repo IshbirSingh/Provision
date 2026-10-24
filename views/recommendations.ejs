@@ -29,6 +29,10 @@
   const columns = P.map((p) => [p, labels[p] + (ft && p === policy ? ' (standard)' : ''), record.policies[p]]);
   if (ft && record.adjusted) columns.splice(P.indexOf(policy) + 1, 0, ['adjusted', planLabel, record.adjusted]);
   const isChosen = (key) => key === (ft ? 'adjusted' : policy);
+  const startIso = record.calculation.asOf || (record.createdAt || new Date().toISOString()).slice(0, 10);
+  const dayDate = (n) => new Date(Date.parse(startIso + 'T00:00:00Z') + n * 86400000).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const orderDays = record.calculation.orderDays || [];
+  const scheduled = rows.filter((r) => (r.schedule || []).some((x) => Math.round(x.mean) > 0));
 %>
 <p class="eyebrow">Step 5 of 5</p>
 <h1><%= finalised ? 'Finalised plan' : 'Your plan' %></h1>
@@ -81,7 +85,7 @@
 <% if (!finalised && canSwitch) { %>
 <section class="section fine-tune" id="fine-tune">
   <h2>Fine-tune protection</h2>
-  <p>How much of the likely demand this plan covers. Higher protection orders more now and lowers the chance of running out; lower holds less stock. The standard <%= labels[policy] %> level is <%= defaultPct %>%<%= policy === 'resilient' ? ' for critical items, with essential and standard items a little lower' : '' %>.</p>
+  <p>The chance of <em>not</em> running out of each product over the next <%= cfg.planningHorizonDays %> days. Higher protection holds more stock; lower holds less. The standard <%= labels[policy] %> level is <%= defaultPct %>%<%= policy === 'resilient' ? ' for critical items, a little lower for others' : '' %>.</p>
   <form method="post" action="/plan/fine-tune" class="fine-tune__form" data-busy="Re-running…">
     <div class="slider-row">
       <input type="range" id="level" name="level" min="50" max="99" step="1" value="<%= levelPct %>" aria-describedby="level-out" oninput="document.getElementById('level-out').textContent = this.value + '%'">
@@ -95,8 +99,30 @@
 </section>
 <% } %>
 
+<% if (scheduled.length && orderDays.length > 1) { %>
 <section class="section">
-  <h2>What to do</h2>
+  <h2>Order plan for the next <%= cfg.planningHorizonDays %> days</h2>
+  <p class="hint">Today's figures are firm. Later ones are what's typically needed if demand runs as expected; re-count and update the plan before each order.</p>
+  <div class="table-scroll">
+    <table class="table schedule-table">
+      <thead><tr><th>Product</th><% for (const d of orderDays) { %><th class="num"><%= d === 0 ? 'Today' : dayDate(d) %></th><% } %></tr></thead>
+      <tbody>
+        <% for (const r of scheduled) { %>
+        <tr>
+          <td><%= r.name %> <span class="small"><%= r.unit ? `(${r.unit}s)` : '' %></span></td>
+          <% for (const x of r.schedule) { const v = Math.round(x.mean); %>
+          <td class="num<%= x.day === 0 ? ' schedule-today' : '' %>"><%= v > 0 ? (x.day === 0 ? n0(v) : `about ${n0(v)}`) : '–' %></td>
+          <% } %>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<% } %>
+
+<section class="section">
+  <h2>What to do today</h2>
   <p class="hint">Most urgent first. Open a row to see how it was worked out.</p>
   <div class="table-scroll">
     <table class="table rec-table">
@@ -135,41 +161,14 @@
             <details class="why">
               <summary>Why this recommendation?</summary>
               <div class="why__body">
-                <p class="why__lead">
-                  <% if (r.replenish > 0) { %>
-                    <strong>Request <%= u(r.replenish, r.unit) %>.</strong> Stock now is <%= n0(r.currentStock) %>; this plan aims to hold <%= n0(r.target) %> to cover the next <%= pp.protectionHorizonDays %> days.
-                  <% } else { %>
-                    <strong>No request now.</strong> Stock now (<%= n0(r.currentStock) %>) already covers the next <%= pp.protectionHorizonDays %> days at this plan's level (<%= n0(r.target) %>).
-                  <% } %>
-                </p>
-                <div class="why__grid">
-                  <div>
-                    <h4>What we know</h4>
-                    <dl class="summary summary--tight">
-                      <div><dt>Stock now</dt><dd><%= u(r.currentStock, r.unit) %><%= ev.stock?.snapshotDate ? `, counted ${longDate(ev.stock.snapshotDate)}` : '' %></dd></div>
-                      <div><dt>Weekly demand</dt><dd><%= n1(7 * inp.muHat) %><%= inp.seasonalMultiplier !== 1 ? `; ${n1(7 * inp.muBase)} after holiday and weather adjustment` : '' %></dd></div>
-                      <% if (inp.mu !== inp.muBase) { %><div><dt>In this scenario</dt><dd><%= n1(7 * inp.mu) %> a week</dd></div><% } %>
-                      <div><dt>Lead time</dt><dd><%= L %> days<%= inp.leadTimeDisrupted !== inp.leadTime && policy !== 'resilient' ? ` (deliveries actually take ${inp.leadTimeDisrupted} in this scenario)` : '' %></dd></div>
-                      <% if (inp.capacity !== null && inp.capacity !== undefined) { %><div><dt>Room for</dt><dd><%= n0(inp.capacity) %></dd></div><% } %>
-                    </dl>
-                  </div>
-                  <div>
-                    <h4>How the order is worked out</h4>
-                    <p class="formula" data-display="block" data-tex="h = L + R = <%= L %> + <%= g.reviewPeriodDays %> = <%= pp.protectionHorizonDays %>\ \text{days}"></p>
-                    <p class="formula" data-display="block" data-tex="T = \left\lceil F^{-1}_{D_h}(<%= q.toFixed(2) %>) \right\rceil = <%= pp.target %>"></p>
-                    <p class="formula" data-display="block" data-tex="Q = \max(0,\ <%= pp.target %> - <%= r.currentStock %>) = <%= rawQ %><%= r.replenish !== rawQ ? String.raw`\;\to\; ${r.replenish}\ \text{(storage limit)}` : '' %>"></p>
-                    <p class="hint">h is the days an order has to cover: the lead time plus the gap until the next order. T is the <%= Math.round(q * 100) %>th percentile of demand over those days, enough in <%= Math.round(q * 100) %> futures out of 100<%= pp.reserveBinding ? ', raised to meet the emergency reserve' : '' %>.</p>
-                  </div>
-                  <div>
-                    <h4>What the simulation shows</h4>
-                    <dl class="summary summary--tight">
-                      <div><dt>Chance of running out</dt><dd><%= pc(r.shortageRisk) %></dd></div>
-                      <div><dt>Before the first delivery</dt><dd><%= pc(r.shortageBeforeFirstDelivery) %> (delivery on day <%= r.firstPossibleDeliveryDay %>)</dd></div>
-                      <div><dt>Expected shortfall</dt><dd><%= n1(r.expectedUnmet) %></dd></div>
-                      <div><dt>Expected waste</dt><dd><%- r.expectedWaste === null ? insufficient : n1(r.expectedWaste) %></dd></div>
-                    </dl>
-                  </div>
-                </div>
+                <p class="why__lead"><strong><%= r.replenish > 0 ? `Request ${u(r.replenish, r.unit)} today.` : 'Nothing needed today.' %></strong></p>
+                <ul class="plain-facts">
+                  <li>You have <%= u(r.currentStock, r.unit) %><%= ev.stock?.snapshotDate ? ` (counted ${longDate(ev.stock.snapshotDate)})` : '' %> and usually give out about <%= n0(7 * inp.mu) %> a week<%= inp.mu !== inp.muHat ? ' (adjusted for holidays, weather or the scenario)' : '' %>.</li>
+                  <li>An order takes <%= inp.leadTimeDisrupted %> days to arrive<%= inp.leadTimeDisrupted !== inp.leadTime ? ` in this scenario (usually ${inp.leadTime})` : '' %>, and you can order every <%= g.reviewPeriodDays %> days.</li>
+                  <li>This plan aims for about a <strong><%= Math.round((r.riskTarget ?? 0) * 100) %>% chance of running out</strong> over the next <%= cfg.planningHorizonDays %> days. To get there it keeps up to <%= n0(r.target) %> in stock<%= pp.reserveBinding ? ', enough to meet the emergency reserve' : '' %>.</li>
+                  <% if (r.replenish !== rawQ) { %><li>The order is smaller than it would be because there's only room for about <%= n0(inp.capacity) %>.</li><% } %>
+                  <li>Across <%= record.calculation.runs.toLocaleString('en-GB') %> simulated futures it runs out in <strong><%= pc(r.shortageRisk) %></strong><%= r.shortageBeforeFirstDelivery > 0.05 ? `, mostly before the first delivery can arrive (${pc(r.shortageBeforeFirstDelivery)})` : '' %>.<%= r.expectedWaste ? ` About ${n1(r.expectedWaste)} is likely to go out of date.` : '' %></li>
+                </ul>
                 <div class="why__chart" data-chart="projection" data-series="<%= JSON.stringify(record.projected[r.productId] || null) %>" data-unit="<%= r.unit || 'unit' %>"></div>
                 <table class="table table--compact why__compare">
                   <thead><tr><th>Plan</th><th class="num">Request</th><th class="num">Chance of running out</th><th class="num">Expected waste</th></tr></thead>

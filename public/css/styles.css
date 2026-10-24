@@ -18,6 +18,9 @@
   --ok-bg: #e5f0eb;
   --info-bg: #eef2f6;
   --info: #2b4a66;
+  --light-red: #c8281e;
+  --light-amber: #e8a200;
+  --light-green: #2e8b3e;
   --lean: #a7a59b;
   --balanced: #1f5c46;
   --resilient: #2b4a66;
@@ -156,9 +159,16 @@ input[type="range"] { width: 100%; max-width: 420px; accent-color: var(--accent)
 .tag--alert { background: var(--alert-bg); border-color: #e2aaa5; color: var(--alert); }
 .tag--warn { background: var(--warn-bg); border-color: #e3c98c; color: var(--warn); }
 .tag--muted { color: var(--muted); background: #fff; }
-.tag--critical { background: var(--alert); border-color: var(--alert); color: #fff; }
-.tag--essential { background: var(--warn-bg); border-color: #e3c98c; color: var(--warn); }
-.tag--standard { background: #fff; color: var(--muted); }
+/* Priority traffic lights: red critical, amber essential, green standard */
+.tag--critical, .tag--essential, .tag--standard { background: #fff; color: var(--text); border-color: var(--border); }
+.tag--critical::before, .tag--essential::before, .tag--standard::before { content: ""; display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 6px; vertical-align: -0.05em; }
+.tag--critical::before { background: var(--light-red); }
+.tag--essential::before { background: var(--light-amber); }
+.tag--standard::before { background: var(--light-green); }
+select.prio-select { border-left-width: 10px; }
+select.prio-select[data-value="critical"] { border-left-color: var(--light-red); }
+select.prio-select[data-value="essential"] { border-left-color: var(--light-amber); }
+select.prio-select[data-value="standard"] { border-left-color: var(--light-green); }
 
 /* Key/value summaries */
 .summary { margin: 0; }
@@ -341,3 +351,9 @@ details > summary { cursor: pointer; list-style-position: outside; }
   .site-header__org { border-left: 0; padding-left: 0; }
   .summary > div { flex-direction: column; gap: 0; }
 }
+
+/* Plain-language facts and the order plan */
+.plain-facts { margin: 8px 0 12px; padding-left: 20px; max-width: 80ch; }
+.plain-facts li { margin-bottom: 6px; }
+.schedule-table td.schedule-today { font-weight: 700; }
+.space-use { display: block; }

@@ -18,3 +18,8 @@ document.querySelectorAll('form[data-busy]').forEach((form) => {
     button.textContent = form.dataset.busy;
   });
 });
+
+// Priority dropdowns show their traffic-light colour as they change.
+document.addEventListener('change', (event) => {
+  if (event.target.matches('select.prio-select')) event.target.dataset.value = event.target.value;
+});

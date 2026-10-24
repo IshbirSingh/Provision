@@ -58,9 +58,12 @@
         </tr>
         <% } %>
         <tr>
-          <th scope="row">Limits</th>
-          <% for (const p of P) { const w = pol[p].warnings; %>
-          <td class="<%= selected === p ? 'is-selected' : '' %> small"><%- w.length ? w.map((x) => `<span class="issue issue--warning">${x.replace(/</g, '&lt;')}</span>`).join('') : 'None reported' %></td>
+          <th scope="row">Storage<span class="hint">How full your storage gets, from the space you entered</span></th>
+          <% for (const p of P) { const t = pol[p].totals; const su = t.spaceUse; const cut = (t.capacityLimitedProducts || []).map((id) => products[id]?.name).filter(Boolean); %>
+          <td class="<%= selected === p ? 'is-selected' : '' %> small">
+            <% if (su) { for (const [type, x] of Object.entries(su)) { %><span class="space-use"><%= type[0].toUpperCase() + type.slice(1) %>: up to <%= Math.round(x.peak * 100) %>% full</span><% } } else { %>No storage sizes entered<% } %>
+            <span class="space-use<%= cut.length ? ' is-low' : '' %>"><%= cut.length ? `Orders cut to fit: ${cut.join(', ')}` : 'Every order fits' %></span>
+          </td>
           <% } %>
         </tr>
         <tr class="choose-row">

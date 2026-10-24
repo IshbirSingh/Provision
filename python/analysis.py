@@ -177,7 +177,6 @@ def adjustment(used, holidays, weather, mu, as_of, horizon_days):
         "explanation": [],
     }
     if not mu or len(used) < MIN_ADJUSTMENT_INTERVALS:
-        out["explanation"].append("Not enough counts to measure the effect of holidays or weather, so no adjustment is made.")
         return out
 
     rows = []
@@ -240,10 +239,6 @@ def adjustment(used, holidays, weather, mu, as_of, horizon_days):
             f"In your records, consumption during school holidays was {abs(b_h / base):.0%} {direction} than in term time. "
             f"{share}% of the planning horizon is in a school holiday, which changes the forecast by {hol_part:+.0%}."
         )
-    elif use_holiday:
-        out["explanation"].append("Your records show no clear difference between school holidays and term time, so holidays don't change the forecast.")
-    else:
-        out["explanation"].append("Not enough counts in and out of school holidays to compare them.")
 
     if include_t:
         per_deg = -b_t / base  # per degree colder
@@ -254,10 +249,6 @@ def adjustment(used, holidays, weather, mu, as_of, horizon_days):
             f"The next {horizon_days} days are expected to average {np.mean(horizon_temps):.1f}°C, {abs(dT):.1f}° {colder} than your records' average of {t_mean:.1f}°C, "
             f"which changes the forecast by {temp_part:+.0%}."
         )
-    elif use_temp:
-        out["explanation"].append("Your records show no clear link between temperature and consumption, so the weather forecast doesn't change the forecast.")
-    elif not temps:
-        out["explanation"].append("Past weather for your area wasn't available, so weather isn't used.")
 
     if m in ADJUSTMENT_LIMITS:
         out["explanation"].append(f"The adjustment was limited to ×{m:.2f} to avoid over-reacting to a small sample.")

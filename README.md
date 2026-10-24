@@ -1,6 +1,6 @@
 # Provision
 
-Decision support for UK food banks. Upload historical stock counts, approve the inferred planning parameters, test a scenario, compare three replenishment policies (Lean, Balanced, Resilient) under 1,000 seeded Monte Carlo runs, then finalise an explainable plan.
+Decision support for UK food banks. Upload historical stock counts, approve the inferred planning parameters, test a scenario, compare three replenishment policies (Lean, Balanced, Resilient) under 10,000 seeded Monte Carlo runs, then finalise an explainable plan.
 
 Provision supports staff judgement; it doesn't replace it.
 
@@ -54,10 +54,10 @@ npm run test:py  # Python engine tests
 ## Workflow
 
 1. **Data**: upload a CSV or Excel stock history, use the sample file, or enter counts by hand. Review the extracted products and flagged rows, then approve.
-2. **Parameters**: check the inferred weekly demand, variability and seasonal adjustment against local context, set lead times and capacities, then approve.
+2. **Parameters**: check the inferred weekly demand, lead times and shelf lives, then approve. Holiday and weather adjustments and storage capacity are worked out automatically.
 3. **Scenario**: Normal operations, Increased demand, Safety first or Delivery disruption, with optional combined adjustments.
-4. **Compare**: Lean, Balanced and Resilient side by side, from 1,000 shared simulated futures. Choose one.
-5. **Plan**: recommendations by urgency, a "Why this recommendation?" panel for each product, and an action plan. Confirm to freeze it as an audit record (JSON download and printable summary).
+4. **Compare**: Lean, Balanced and Resilient side by side, from 10,000 shared simulated futures. Choose one.
+5. **Plan**: an order plan for every order day in the horizon, today's recommendations by urgency with a plain-English "Why this recommendation?" for each product, an optional protection-level fine-tune, and an action plan. Confirm to freeze it as an audit record (JSON download and printable summary).
 
 Editing an earlier step clears the results that depended on it.
 

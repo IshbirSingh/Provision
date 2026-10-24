@@ -17,10 +17,11 @@ const SCENARIOS = {
 const SCENARIO_FROM_STORED = Object.fromEntries(Object.entries(SCENARIOS).map(([id, s]) => [s.storeAs, id]));
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
-const DEFAULT_QUANTILES = { lean: 0.5, balanced: 0.8, resilient: { critical: 0.95, essential: 0.9, standard: 0.8 } };
+const RUNS = 10000;
 const HIGH_RISK = 0.2;
-// Standard protection level of each policy (Resilient: for critical items).
-const DEFAULT_LEVELS = { lean: 0.5, balanced: 0.8, resilient: 0.95 };
+// Standard protection level of each policy: the chance of not running out
+// over the plan (Resilient: for critical items). Matches python/policies.py.
+const DEFAULT_LEVELS = { lean: 0.6, balanced: 0.75, resilient: 0.95 };
 
 // Scenario config in the spec 3.5 contract shape, from data.scenario.
 function scenarioConfig(data) {
@@ -34,9 +35,21 @@ function scenarioConfig(data) {
     additionalDeliveryDelayDays: s.additionalDeliveryDelayDays ?? 0,
     deliveryQuantityReduction: Math.round((1 - (s.supplyFulfilmentMultiplier ?? 1)) * 1000) / 1000,
     planningHorizonDays: g.planningHorizonDays,
-    numberOfRuns: g.runs || 1000,
+    numberOfRuns: RUNS,
     randomSeed: g.seed ?? 42,
     policyIds: POLICIES,
+  };
+}
+
+// Product sizes and storage space, so the simulation can report how full
+// each kind of storage gets.
+function storageForSimulation(data) {
+  const types = data.parameters.capacity?.types;
+  const sizes = data.parameters.sizes?.sizes;
+  if (!types || !sizes) return null;
+  return {
+    capacityLitres: Object.fromEntries(Object.entries(types).map(([t, v]) => [t, v.capacityLitres || null])),
+    products: Object.fromEntries(Object.entries(sizes).map(([id, sz]) => [id, { type: sz.storageType, volumeL: sz.unitVolumeL }])),
   };
 }
 
@@ -69,8 +82,8 @@ function buildSimulationPayload(data, { policyLevels = null } = {}) {
       // Stock counts can't show delivery reliability; the Delivery disruption
       // scenario is how unreliable deliveries are tested.
       deliverySuccessProbability: 1.0,
-      quantiles: g.quantiles || DEFAULT_QUANTILES,
       productCapacity: g.productCapacity || {},
+      storage: storageForSimulation(data),
     },
     products,
     ...(policyLevels ? { policyLevels } : {}),
@@ -116,7 +129,8 @@ function urgencyOf(r) {
 // Why a shortage chance is high, in plain words, from the simulation's own
 // inputs and results. Only reasons the numbers support are given.
 function riskReasons(r, inputs, pr, cfg, policy) {
-  if (r.shortageRisk < HIGH_RISK) return [];
+  // Explain when the risk is clearly above what the plan aims for.
+  if (r.shortageRisk < Math.min(0.5, (pr.riskTarget ?? HIGH_RISK) + 0.1)) return [];
   const reasons = [];
   const before = inputs.expectedDemandBeforeFirstDelivery;
   if (inputs.leadTimeDisrupted >= cfg.planningHorizonDays) {
@@ -124,15 +138,17 @@ function riskReasons(r, inputs, pr, cfg, policy) {
   } else if (before !== null && inputs.currentStock < before) {
     reasons.push(`Current stock (${inputs.currentStock}) is less than the ${Math.round(before)} expected to be needed before the earliest delivery on day ${inputs.leadTimeDisrupted}. No order can arrive sooner.`);
   }
-  if (pr.capacityShortfallPerOrder > 0 && inputs.capacity !== null) {
+  if (pr.riskTargetReachable === false && inputs.capacity !== null) {
+    reasons.push(`There isn't enough storage space to hold enough stock for this plan's target (room for about ${inputs.capacity}).`);
+  } else if (pr.capacityShortfallPerOrder > 0 && inputs.capacity !== null) {
     reasons.push(`Storage space limits this product to about ${inputs.capacity} at a time, below the order-up-to level of ${pr.target}.`);
   }
   if (cfg.additionalDeliveryDelayDays > 0) reasons.push(`Deliveries arrive ${cfg.additionalDeliveryDelayDays} days late in this scenario.`);
   if (cfg.deliveryQuantityReduction > 0) reasons.push(`Deliveries bring ${Math.round(cfg.deliveryQuantityReduction * 100)}% less than ordered in this scenario.`);
   if (cfg.demandIncrease > 0) reasons.push(`Demand is ${Math.round(cfg.demandIncrease * 100)}% above the forecast in this scenario.`);
-  if (policy === 'lean') reasons.push('Lean only orders up to the typical (median) demand, so it accepts more risk by design.');
+  if (policy === 'lean') reasons.push('Lean holds less stock and accepts about a 40% chance of running out by design.');
   if (inputs.weeklyCv !== null && inputs.weeklyCv > 0.5) reasons.push('Demand changes a lot from week to week, so shortages are hard to rule out.');
-  if (!reasons.length) reasons.push('In a share of the simulated futures, demand is higher than the order-up-to level. A higher protection level would lower this.');
+  if (!reasons.length) reasons.push(`This plan aims for about a ${Math.round((pr.riskTarget ?? 0) * 100)}% chance of running out; raise the protection level to lower it.`);
   return reasons;
 }
 
@@ -177,6 +193,8 @@ function buildRecommendation(data, policy) {
       serviceLevel: pr.serviceLevel,
       capacity: inputs.capacity,
       capacityShortfallPerOrder: pr.capacityShortfallPerOrder,
+      riskTarget: pr.riskTarget,
+      schedule: pr.schedule,
       expiring: {
         quantity: batches.reduce((s, b) => s + b.quantity, 0),
         earliestDate: batches.map((b) => b.expiryDate).sort()[0] || null,
